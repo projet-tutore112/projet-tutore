@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const yaml = require('js-yaml');
 
 function getTemplates(templatesDir) {
     if (!fs.existsSync(templatesDir)) return [];
@@ -70,8 +71,21 @@ function generateMarkdown(templateName, analysis, values) {
     return md;
 }
 
+function loadTemplateConfig(templatePath) {
+    const ymlPath = templatePath.replace(".html", ".yml");
+
+    if (!fs.existsSync(ymlPath)) {
+        return null;
+    }
+
+    const file = fs.readFileSync(ymlPath, "utf8");
+    return yaml.load(file);
+}
+
+
 module.exports = {
     getTemplates,
     analyseTemplate,
-    generateMarkdown
+    generateMarkdown,
+    loadTemplateConfig
 };

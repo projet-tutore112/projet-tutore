@@ -1,0 +1,29 @@
+id: documentation
+label: Documentation Technique
+
+description: >
+  Template pour pages de documentation structurée.
+
+fields:
+
+  - name: title
+    label: Titre de la documentation
+    type: text
+    required: true
+
+  - name: weight
+    label: Ordre d'affichage
+    type: number
+    required: false
+    help: Plus petit = affiché en premier
+
+  - name: extra.version
+    label: Version
+    type: text
+    required: false
+    help: Exemple : 1.0.0
+
+  - name: extra.author
+    label: Auteur
+    type: text
+    required: false

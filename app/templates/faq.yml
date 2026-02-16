@@ -1,0 +1,18 @@
+id: faq
+label: FAQ
+
+description: >
+  Page de questions fréquentes avec liste dynamique.
+
+fields:
+
+  - name: title
+    label: Titre de la FAQ
+    type: text
+    required: true
+
+  - name: extra.questions
+    label: Liste des questions/réponses
+    type: list
+    required: false
+    help: Format attendu : Question|Réponse

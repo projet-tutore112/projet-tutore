@@ -1,0 +1,33 @@
+id: newsletter
+label: Newsletter
+
+description: >
+  Page d'inscription à une newsletter avec description
+  et formulaire externe.
+
+fields:
+
+  - name: title
+    label: Titre
+    type: text
+    required: true
+
+  - name: description
+    label: Description
+    type: textarea
+    required: false
+
+  - name: extra.provider
+    label: Fournisseur (Mailchimp, Brevo, etc.)
+    type: text
+    required: false
+
+  - name: extra.form_action
+    label: URL du formulaire
+    type: text
+    required: false
+
+  - name: extra.button_text
+    label: Texte du bouton
+    type: text
+    required: false

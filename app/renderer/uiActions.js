@@ -12,9 +12,16 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
 
     if (document.getElementById('modal-new-page')) return;
 
-    // ============================
-    // MODALE
-    // ============================
+    const templatesDir = path.join(__dirname, "../templates");
+    const templates = templateEngine.getTemplates(templatesDir);
+
+    let templateOptions = templates.map(t =>
+        `<option value="${t.id}">${t.label}</option>`
+    ).join("");
+
+    if (!templateOptions) {
+        templateOptions = `<option disabled>Aucun template trouvé</option>`;
+    }
 
     const overlay = document.createElement('div');
     overlay.id = 'modal-new-page';
@@ -28,47 +35,36 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
         z-index:2000;
     `;
 
-    const templatesDir = path.join(__dirname, "../templates");
-    const templates = templateEngine.getTemplates(templatesDir);
-
-    let templateOptions = templates.map(t =>
-        `<option value="${t.id}">${t.label}</option>`
-    ).join("");
-
-    if (!templateOptions) {
-        templateOptions = `<option disabled>Aucun template trouvé</option>`;
-    }
-
     overlay.innerHTML = `
-        <div id="modal-content" style="
+        <div style="
             background:white;
             padding:20px;
             border-radius:8px;
-            width:380px;
+            width:420px;
+            max-height:90vh;
+            overflow:auto;
             box-shadow:0 10px 30px rgba(0,0,0,0.3);
         ">
-            <h3 style="margin-top:0;">➕ Nouvelle page Zola</h3>
-
+            <h3>➕ Nouvelle page Zola</h3>
             <div id="new-page-error"></div>
 
-            <label style="font-weight:bold;">Nom du fichier</label>
+            <label><strong>Nom du fichier</strong></label>
             <input id="new-page-name" type="text"
                 placeholder="ex: a-propos"
-                style="width:100%; padding:10px; margin:10px 0;">
+                style="width:100%; padding:8px; margin:8px 0;">
 
-            <label style="font-weight:bold;">Template HTML</label>
+            <label><strong>Template</strong></label>
             <select id="new-page-template"
-                style="width:100%; padding:10px; margin-bottom:15px;">
+                style="width:100%; padding:8px; margin-bottom:15px;">
                 ${templateOptions}
             </select>
 
-            <div style="display:flex; justify-content:flex-end; gap:10px;">
-                <button id="cancel-new-page" style="padding:8px 12px;">
-                    Annuler
-                </button>
+            <div id="dynamic-fields"></div>
 
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
+                <button id="cancel-new-page">Annuler</button>
                 <button id="confirm-new-page"
-                    style="background:#27ae60; color:white; border:none; padding:8px 12px;">
+                    style="background:#27ae60; color:white; border:none; padding:6px 12px;">
                     Créer
                 </button>
             </div>
@@ -77,6 +73,81 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
 
     document.body.appendChild(overlay);
     document.getElementById('new-page-name').focus();
+
+    const templateSelect = document.getElementById('new-page-template');
+    const dynamicFields = document.getElementById('dynamic-fields');
+
+    // ============================
+    // Génération dynamique formulaire
+    // ============================
+
+    function generateForm(templateFile) {
+
+        dynamicFields.innerHTML = "";
+
+        const templatePath = path.join(templatesDir, templateFile);
+        const config = templateEngine.loadTemplateConfig(templatePath);
+
+        if (!config) {
+            dynamicFields.innerHTML = "<p style='color:#888'>Aucun fichier YML associé</p>";
+            return;
+        }
+
+        function createInput(key, field, prefix) {
+
+            const id = `${prefix}-${key}`;
+
+            let inputHTML = "";
+
+            switch (field.type) {
+                case "textarea":
+                    inputHTML = `<textarea id="${id}" style="width:100%; padding:6px;"></textarea>`;
+                    break;
+
+                case "number":
+                    inputHTML = `<input type="number" id="${id}" style="width:100%; padding:6px;">`;
+                    break;
+
+                case "date":
+                    inputHTML = `<input type="date" id="${id}" style="width:100%; padding:6px;">`;
+                    break;
+
+                case "boolean":
+                    inputHTML = `<input type="checkbox" id="${id}">`;
+                    break;
+
+                default:
+                    inputHTML = `<input type="text" id="${id}" style="width:100%; padding:6px;">`;
+            }
+
+            return `
+                <div style="margin-bottom:10px;">
+                    <label><strong>${field.label}</strong></label>
+                    ${inputHTML}
+                </div>
+            `;
+        }
+
+        if (config.page) {
+            dynamicFields.innerHTML += "<h4>Champs principaux</h4>";
+            for (const key in config.page) {
+                dynamicFields.innerHTML += createInput(key, config.page[key], "page");
+            }
+        }
+
+        if (config.extra) {
+            dynamicFields.innerHTML += "<h4>Champs supplémentaires</h4>";
+            for (const key in config.extra) {
+                dynamicFields.innerHTML += createInput(key, config.extra[key], "extra");
+            }
+        }
+    }
+
+    templateSelect.onchange = () => {
+        generateForm(templateSelect.value);
+    };
+
+    generateForm(templateSelect.value);
 
     // ============================
     // ANNULATION
@@ -93,54 +164,62 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
     document.getElementById('confirm-new-page').onclick = () => {
 
         const nom = document.getElementById('new-page-name').value.trim();
-        const templateFile = document.getElementById('new-page-template').value;
+        const templateFile = templateSelect.value;
 
         if (!nom) {
-            afficherErreur("Le nom ne peut pas être vide");
+            afficherErreur("Nom obligatoire");
             return;
         }
 
         const safeName = nom.replace(/[^a-zA-Z0-9-_]/g, '-');
+        const templatePath = path.join(templatesDir, templateFile);
+        const config = templateEngine.loadTemplateConfig(templatePath);
+
+        const values = {};
+
+        if (config) {
+
+            if (config.page) {
+                for (const key in config.page) {
+                    const field = config.page[key];
+                    const input = document.getElementById(`page-${key}`);
+                    const value = field.type === "boolean"
+                        ? input.checked
+                        : input.value;
+
+                    if (field.required && !value) {
+                        afficherErreur(`${field.label} est obligatoire`);
+                        return;
+                    }
+
+                    values[key] = value;
+                }
+            }
+
+            if (config.extra) {
+                for (const key in config.extra) {
+                    const field = config.extra[key];
+                    const input = document.getElementById(`extra-${key}`);
+                    const value = field.type === "boolean"
+                        ? input.checked
+                        : input.value;
+
+                    values[key] = value;
+                }
+            }
+        }
 
         try {
 
-            const templatePath = path.join(templatesDir, templateFile);
-
-            if (!fs.existsSync(templatePath)) {
-                afficherErreur("Template introuvable");
-                return;
-            }
-
-            // 🔎 Analyse automatique du template HTML
             const analysis = templateEngine.analyseTemplate(templatePath);
 
-            // 🎯 Génération automatique des valeurs
-            const values = {};
-
-            analysis.pageVars.forEach(key => {
-                if (key === "title") {
-                    values[key] = safeName.replace(/-/g, " ");
-                } else if (key === "date") {
-                    values[key] = new Date().toISOString().split("T")[0];
-                } else {
-                    values[key] = "";
-                }
-            });
-
-            analysis.extraVars.forEach(key => {
-                values[key] = "";
-            });
-
-            // 📝 Génération markdown
             const markdown = templateEngine.generateMarkdown(
                 templateFile,
                 analysis,
                 values
             );
 
-            // 📂 Dossier content
             const contentDir = path.join(projectDir, 'content');
-
             if (!fs.existsSync(contentDir)) {
                 fs.mkdirSync(contentDir, { recursive: true });
             }
@@ -148,7 +227,7 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
             const filePath = path.join(contentDir, `${safeName}.md`);
 
             if (fs.existsSync(filePath)) {
-                afficherErreur("❌ Ce fichier existe déjà");
+                afficherErreur("Ce fichier existe déjà");
                 return;
             }
 
@@ -160,22 +239,15 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
 
         } catch (error) {
             console.error(error);
-            afficherErreur("Erreur création page : " + error.message);
+            afficherErreur("Erreur : " + error.message);
         }
     };
-
-    // ============================
-    // GESTION ERREUR
-    // ============================
 
     function afficherErreur(message) {
         const errorDiv = document.getElementById('new-page-error');
         errorDiv.style.color = '#e74c3c';
-        errorDiv.style.marginBottom = '10px';
         errorDiv.style.fontWeight = 'bold';
+        errorDiv.style.marginBottom = '10px';
         errorDiv.innerText = message;
-
-        const input = document.getElementById('new-page-name');
-        if (input) input.focus();
     }
 };

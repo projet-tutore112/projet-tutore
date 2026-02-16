@@ -1,0 +1,39 @@
+id: article-avance
+label: Article Avancé
+
+description: >
+  Article complet avec catégories, tags et image.
+
+fields:
+
+  - name: title
+    label: Titre
+    type: text
+    required: true
+
+  - name: date
+    label: Date de publication
+    type: date
+    required: true
+
+  - name: description
+    label: Résumé
+    type: textarea
+    required: false
+
+  - name: taxonomies.categories
+    label: Catégories
+    type: list
+    required: false
+    help: Séparer par des virgules
+
+  - name: taxonomies.tags
+    label: Tags
+    type: list
+    required: false
+    help: Séparer par des virgules
+
+  - name: extra.hero_image
+    label: Image de couverture
+    type: text
+    required: false
