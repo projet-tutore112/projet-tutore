@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ page.title }}</title>
+</head>
+<body>
+
+<h1>{{ page.title }}</h1>
+
+<nav>
+    <p>Niveau : {{ page.extra.level }}</p>
+</nav>
+
+<section>
+    {{ page.content | safe }}
+</section>
+
+</body>
+</html>

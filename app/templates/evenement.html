@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ page.title }}</title>
+</head>
+<body>
+
+<h1>{{ page.title }}</h1>
+<p>Date : {{ page.date }}</p>
+
+<p>Lieu : {{ page.extra.location }}</p>
+<p>Organisateur : {{ page.extra.organizer }}</p>
+
+{% if page.extra.registration_link %}
+    <a href="{{ page.extra.registration_link }}">
+        S'inscrire
+    </a>
+{% endif %}
+
+<hr>
+
+{{ page.content | safe }}
+
+</body>
+</html>

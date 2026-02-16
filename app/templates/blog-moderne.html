@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ page.title }} | {{ config.title }}</title>
+</head>
+<body>
+
+<header>
+    <h1>{{ config.title }}</h1>
+</header>
+
+<article>
+    <h2>{{ page.title }}</h2>
+    <p><small>Publié le {{ page.date }} par {{ page.extra.author }}</small></p>
+
+    {% if page.extra.hero_image %}
+        <img src="{{ page.extra.hero_image }}" style="max-width:100%;">
+    {% endif %}
+
+    {{ page.content | safe }}
+
+    <hr>
+    <p>Tags :
+        {% for tag in page.taxonomies.tags %}
+            <span>#{{ tag }}</span>
+        {% endfor %}
+    </p>
+</article>
+
+</body>
+</html>
