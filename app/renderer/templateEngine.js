@@ -1,17 +1,36 @@
 const fs = require("fs");
 const path = require("path");
-const yaml = require('js-yaml');
+const yaml = require("js-yaml");
+
+/* ======================================================
+   1️⃣  RÉCUPÉRATION DES TEMPLATES
+====================================================== */
 
 function getTemplates(templatesDir) {
     if (!fs.existsSync(templatesDir)) return [];
 
-    return fs.readdirSync(templatesDir)
-        .filter(f => f.endsWith(".html"))
-        .map(f => ({
-            id: f,
-            label: f.replace(".html", "")
-        }));
+    const files = fs.readdirSync(templatesDir)
+        .filter(f => f.endsWith(".html"));
+
+    return files.map(file => {
+
+        const fullPath = path.join(templatesDir, file);
+
+        // Génère le YAML automatiquement si absent
+        ensureYamlForTemplate(fullPath);
+
+        const config = loadTemplateConfig(fullPath);
+
+        return {
+            id: file,
+            label: config?.label || file.replace(".html", "")
+        };
+    });
 }
+
+/* ======================================================
+   2️⃣  ANALYSE SIMPLE (ancienne logique conservée)
+====================================================== */
 
 function analyseTemplate(filePath) {
     const content = fs.readFileSync(filePath, "utf8");
@@ -43,6 +62,10 @@ function analyseTemplate(filePath) {
     };
 }
 
+/* ======================================================
+   3️⃣  GÉNÉRATION MARKDOWN
+====================================================== */
+
 function generateMarkdown(templateName, analysis, values) {
     let md = "+++\n";
 
@@ -71,21 +94,146 @@ function generateMarkdown(templateName, analysis, values) {
     return md;
 }
 
+/* ======================================================
+   4️⃣  CHARGEMENT CONFIG YAML
+====================================================== */
+
 function loadTemplateConfig(templatePath) {
     const ymlPath = templatePath.replace(".html", ".yml");
 
-    if (!fs.existsSync(ymlPath)) {
-        return null;
-    }
+    if (!fs.existsSync(ymlPath)) return null;
 
     const file = fs.readFileSync(ymlPath, "utf8");
     return yaml.load(file);
 }
 
+/* ======================================================
+   5️⃣  EXTRACTION VARIABLES TWIG (AMÉLIORÉE)
+====================================================== */
+
+function extractVariablesFromTemplate(htmlContent) {
+
+    const regex = /{{\s*([^}]+)\s*}}/g;
+    const variables = new Set();
+
+    let match;
+    while ((match = regex.exec(htmlContent)) !== null) {
+
+        let raw = match[1].trim();
+
+        // Supprime filtres twig (| safe etc.)
+        raw = raw.split("|")[0].trim();
+
+        // Ignore fonctions type get_url()
+        if (raw.includes("(")) continue;
+
+        if (raw.startsWith("page.")) {
+            variables.add(raw.replace("page.", ""));
+        }
+
+        if (raw.startsWith("taxonomies.")) {
+            variables.add(raw);
+        }
+    }
+
+    return Array.from(variables);
+}
+
+/* ======================================================
+   6️⃣  DÉTECTION TYPE AUTO
+====================================================== */
+
+function detectFieldType(name) {
+
+    const v = name.toLowerCase();
+
+    if (v.includes("date")) return "date";
+    if (v.includes("description") || v.includes("summary")) return "textarea";
+    if (v.includes("content")) return "textarea";
+    if (v.includes("tags") || v.includes("categories")) return "list";
+    if (v.includes("image") || v.includes("logo")) return "text";
+    if (v.includes("video")) return "text";
+    if (v.includes("price")) return "text";
+    if (v.includes("email")) return "text";
+    if (v.includes("url") || v.includes("link")) return "text";
+
+    return "text";
+}
+
+/* ======================================================
+   7️⃣  GÉNÉRATION YAML
+====================================================== */
+
+function generateYaml(templateId, variables) {
+
+    if (variables.length === 0) {
+        return `id: ${templateId}
+label: ${templateId}
+
+description: >
+  Template sans variables détectées automatiquement.
+
+fields: []
+`;
+    }
+
+    const fields = variables.map(variable => {
+
+        const type = detectFieldType(variable);
+
+        const label = variable
+            .replace("extra.", "")
+            .replace("taxonomies.", "")
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, l => l.toUpperCase());
+
+        return `  - name: ${variable}
+    label: ${label}
+    type: ${type}
+    required: false`;
+    }).join("\n\n");
+
+    return `id: ${templateId}
+label: ${templateId}
+
+description: >
+  Fichier généré automatiquement depuis le template HTML.
+
+fields:
+
+${fields}
+`;
+}
+
+/* ======================================================
+   8️⃣  AUTO-GÉNÉRATION YAML SI ABSENT
+====================================================== */
+
+function ensureYamlForTemplate(templatePath) {
+
+    const ymlPath = templatePath.replace(".html", ".yml");
+
+    if (fs.existsSync(ymlPath)) return;
+
+    const html = fs.readFileSync(templatePath, "utf8");
+    const variables = extractVariablesFromTemplate(html);
+
+    const templateId = path.basename(templatePath, ".html");
+    const yamlContent = generateYaml(templateId, variables);
+
+    fs.writeFileSync(ymlPath, yamlContent, "utf8");
+
+    console.log("✔ YAML généré automatiquement :", ymlPath);
+}
+
+/* ======================================================
+   EXPORT
+====================================================== */
 
 module.exports = {
     getTemplates,
     analyseTemplate,
     generateMarkdown,
-    loadTemplateConfig
+    loadTemplateConfig,
+    ensureYamlForTemplate
 };
