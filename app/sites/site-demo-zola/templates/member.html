@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="margin-top: 50px; display: flex; gap: 40px; align-items: flex-start;">
+    <div style="flex: 1; max-width: 300px;">
+        <img src="{{ page.extra.member_photo | default(value='/images/avatar.jpg') }}" style="width: 100%; border-radius: 15px; box-shadow: var(--shadow);">
+    </div>
+    <div style="flex: 2;">
+        <span class="badge" style="position: static; margin-bottom: 10px; display: inline-block;">{{ page.extra.role }}</span>
+        <h1 style="margin: 0 0 20px 0;">{{ page.title }}</h1>
+        <div class="content" style="font-size: 1.1rem;">
+            {{ page.content | safe }}
+        </div>
+        <a href="mailto:{{ page.extra.email }}" class="btn btn-primary" style="margin-top: 20px;">Contacter par email</a>
+    </div>
+</div>
+{% endblock content %}

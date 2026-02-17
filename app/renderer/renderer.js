@@ -49,7 +49,7 @@ async function choisirDossier() {
     if (cheminDossier) {
         currentProjectDir = cheminDossier;
         chargerListeFichiers();
-        
+
         // Init Git
         gitManager.chargerHistorique(currentProjectDir, (hash) => {
             voirVersionRelais(hash);
@@ -57,7 +57,7 @@ async function choisirDossier() {
 
         const btn = document.querySelector('.sidebar-actions .btn-primary');
         if (btn) btn.innerText = "📂 " + path.basename(cheminDossier);
-        
+
         afficherMessage("Dossier chargé avec succès !", false);
     }
 }
@@ -66,18 +66,40 @@ function chargerListeFichiers() {
     const sidebar = document.getElementById('file-list');
     sidebar.innerHTML = '';
     if (!currentProjectDir) return;
-    const fichiers = fileManager.getAllFiles(currentProjectDir);
-    fichiers.forEach(cheminComplet => {
-        const div = document.createElement('div');
-        div.innerText = path.relative(currentProjectDir, cheminComplet);
-        div.style.padding = '10px';
-        div.style.cursor = 'pointer';
-        div.style.borderBottom = '1px solid #34495e';
-        div.onmouseover = () => div.style.backgroundColor = '#34495e';
-        div.onmouseout = () => div.style.backgroundColor = 'transparent';
-        div.onclick = () => ouvrirFichier(cheminComplet);
-        sidebar.appendChild(div);
-    });
+
+    const tree = fileManager.getFileTree(currentProjectDir);
+
+    function renderTree(obj, container, depth = 0) {
+        // 1. D'abord on affiche les fichiers du dossier actuel
+        if (obj._files) {
+            obj._files.forEach(file => {
+                const div = document.createElement('div');
+                div.innerText = "📄 " + file.name;
+                div.style.paddingLeft = (depth * 15 + 20) + 'px';
+                div.style.cursor = 'pointer';
+                div.style.fontSize = '13px';
+                div.onclick = () => ouvrirFichier(file.fullPath);
+                container.appendChild(div);
+            });
+        }
+
+        // 2. Ensuite on traite les sous-dossiers
+        for (const key in obj) {
+            if (key === '_files') continue;
+
+            const folderDiv = document.createElement('div');
+            folderDiv.innerHTML = `<strong>📁 ${key}</strong>`;
+            folderDiv.style.paddingLeft = (depth * 15 + 10) + 'px';
+            folderDiv.style.backgroundColor = '#1a252f';
+            folderDiv.style.paddingTop = '5px';
+            folderDiv.style.paddingBottom = '5px';
+            container.appendChild(folderDiv);
+
+            renderTree(obj[key], container, depth + 1);
+        }
+    }
+
+    renderTree(tree, sidebar);
 }
 
 // ============================================================
@@ -88,7 +110,7 @@ function ouvrirFichier(chemin) {
     currentFilePath = chemin;
     const { data, content, format } = fileManager.parseMarkdownFile(chemin);
     formatActuel = format;
-    
+
     try {
         currentAst = parseMarkdownToAst(content);
     } catch (e) {
@@ -96,7 +118,7 @@ function ouvrirFichier(chemin) {
         afficherMessage("Erreur lecture contenu (AST)", true);
         currentAst = { type: 'root', children: [] };
     }
-    
+
     genererFormulaire(data);
 }
 
@@ -151,8 +173,8 @@ function genererFormulaire(frontMatter) {
                 if (node.type === 'paragraph' && node.children && node.children[0].type === 'image') {
                     imgNode = node.children[0];
                 }
-                if(newValue.url !== undefined) imgNode.url = newValue.url;
-                if(newValue.alt !== undefined) imgNode.alt = newValue.alt;
+                if (newValue.url !== undefined) imgNode.url = newValue.url;
+                if (newValue.alt !== undefined) imgNode.alt = newValue.alt;
 
             } else if (mode === 'video') {
                 node.value = newValue;
@@ -212,7 +234,7 @@ async function importerMedia(inputId, previewId, type) {
         const cheminZola = `/${subFolder}/${nomFichier}`;
 
         const input = document.getElementById(inputId);
-        if(input) {
+        if (input) {
             input.value = cheminZola;
             const event = new Event('input', { bubbles: true });
             input.dispatchEvent(event);
@@ -345,10 +367,10 @@ function confirmerGeneration() {
     if (!nomDossier || nomDossier.trim() === "") return afficherMessage("Le nom ne peut pas être vide", true);
     fermerPrompt();
     const nomNettoye = nomDossier.replace(/[^a-zA-Z0-9-_]/g, '_');
-    
+
     // Chemin relatif correct pour remonter de 'renderer' vers la racine puis 'rendu_genere'
-    const dossierExportsRacine = path.join(__dirname, '../../rendu_genere'); 
-    
+    const dossierExportsRacine = path.join(__dirname, '../../rendu_genere');
+
     const dossierSortie = path.join(dossierExportsRacine, nomNettoye);
     if (!fs.existsSync(dossierExportsRacine)) fs.mkdirSync(dossierExportsRacine);
     if (fs.existsSync(dossierSortie)) return afficherMessage(`Le dossier "${nomNettoye}" existe déjà.`, true);
@@ -391,21 +413,149 @@ function voirVersionRelais(hash) {
 // ============================================================
 // 7. AJOUT DE PAGE (NOUVELLE FONCTIONNALITÉ)
 // ============================================================
+const templateEngine = require('./templateEngine');
 
 window.creerNouvellePage = () => {
-    // Note: window.getCurrentProjectDir() est défini dans les exports plus bas
-    const projectDir = currentProjectDir; 
-    if (!projectDir) {
-        alert("⚠️ Charge un projet avant de créer une page");
+    if (!currentProjectDir) return alert("Veuillez charger un projet.");
+
+    // 1. Lister les dossiers
+    const contentPath = path.join(currentProjectDir, 'content');
+    const getSubDirs = (dir) => fs.readdirSync(dir, { withFileTypes: true })
+        .filter(dirent => dirent.isDirectory()).map(dirent => dirent.name);
+
+    const folders = ["(Racine)", ...getSubDirs(contentPath)];
+    document.getElementById('new-page-folder').innerHTML = folders.map(f => `<option value="${f}">${f}</option>`).join('');
+
+    // 2. Lister les templates du site
+    const templatesDir = path.join(currentProjectDir, 'templates');
+    const templates = templateEngine.getTemplates(templatesDir);
+
+    const templateSelect = document.getElementById('new-page-template');
+    templateSelect.innerHTML = templates.map(t => `<option value="${t.id}">${t.label}</option>`).join('');
+
+    document.getElementById('modal-container').style.display = 'flex';
+
+    // Charger les champs du premier template par défaut
+    updateTemplateFields();
+};
+
+window.updateTemplateFields = () => {
+    const templateName = document.getElementById('new-page-template').value;
+    const fileName = document.getElementById('new-page-filename').value.trim();
+    const container = document.getElementById('template-fields-container');
+
+    if (!templateName) return;
+
+    const templatePath = path.join(currentProjectDir, 'templates', templateName);
+    const analysis = templateEngine.analyseTemplate(templatePath);
+    const allVars = [...analysis.pageVars, ...analysis.extraVars];
+    
+    if (container.dataset.currentTemplate !== templateName) {
+        container.innerHTML = '';
+        container.dataset.currentTemplate = templateName;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    allVars.forEach(varName => {
+        let input = container.querySelector(`[data-key="${varName}"]`);
+
+        // Valeur suggérée par le système
+        let suggestedValue = "";
+        if (varName === 'date') suggestedValue = today;
+        else if (varName === 'title') {
+            suggestedValue = fileName ?
+                fileName.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) :
+                "Nouveau Titre";
+        } else if (varName === 'draft') suggestedValue = "false";
+
+        if (!input) {
+            // Création du champ s'il n'existe pas encore
+            const div = document.createElement('div');
+            div.style.marginBottom = "10px";
+            div.innerHTML = `
+                <label style="display:block; font-size:0.8em; font-weight:bold; color: #555;">${varName.toUpperCase()}</label>
+                <input type="text" 
+                       class="template-input" 
+                       data-key="${varName}" 
+                       data-user-edited="false"
+                       value="${suggestedValue}" 
+                       style="width:100%; padding:8px; border: 1px solid #ddd; border-radius:4px;"
+                       oninput="this.dataset.userEdited='true'">
+            `;
+            container.appendChild(div);
+        } else {
+            // MISE À JOUR : On ne change la valeur QUE si l'utilisateur n'a pas encore écrit dedans
+            if (input.dataset.userEdited === "false") {
+                input.value = suggestedValue;
+            }
+        }
+    });
+};
+
+async function validerCreationPage() {
+    const errorDiv = document.getElementById('new-page-error-msg');
+    const fileNameInput = document.getElementById('new-page-filename');
+    const fileName = fileNameInput.value.trim();
+    const folderChoice = document.getElementById('new-page-folder').value;
+    const templateName = document.getElementById('new-page-template').value;
+
+    // Cache l'erreur précédente au début du clic
+    errorDiv.style.display = 'none';
+
+    if (!fileName) {
+        errorDiv.innerText = "⚠️ Le nom du fichier est requis.";
+        errorDiv.style.display = 'block';
+        fileNameInput.style.borderColor = '#e74c3c'; // Petit retour visuel sur l'input
         return;
     }
 
-    creerNouvellePageUI(
-        projectDir,
-        chargerListeFichiers, // On passe la fonction directement
-        ouvrirFichier         // On passe la fonction directement
-    );
-};
+    // Récupérer les valeurs des champs dynamiques
+    const values = {};
+    document.querySelectorAll('.template-input').forEach(input => {
+        values[input.dataset.key] = input.value;
+    });
+
+    try {
+        const templatePath = path.join(currentProjectDir, 'templates', templateName);
+        const analysis = templateEngine.analyseTemplate(templatePath); //
+
+        const markdownContent = templateEngine.generateMarkdown(templateName, analysis, values); //
+
+        const section = folderChoice === "(Racine)" ? "" : folderChoice;
+        const targetDir = path.join(currentProjectDir, 'content', section);
+        if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
+
+        const finalPath = path.join(targetDir, `${fileName}.md`);
+
+        if (fs.existsSync(finalPath)) {
+            errorDiv.innerText = "❌ Ce fichier existe déjà dans ce dossier.";
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        fs.writeFileSync(finalPath, markdownContent, 'utf8');
+
+        fermerModalePage();
+        chargerListeFichiers(); //
+        ouvrirFichier(finalPath); //
+
+        // Notification discrète dans l'appli principale
+        afficherMessage("Page créée avec succès !", false); //
+
+    } catch (e) {
+        errorDiv.innerText = "🔥 Erreur : " + e.message;
+        errorDiv.style.display = 'block';
+    }
+}
+
+// Pense aussi à réinitialiser le style de l'input quand on ferme la modale
+function fermerModalePage() {
+    document.getElementById('modal-container').style.display = 'none';
+    document.getElementById('new-page-filename').value = '';
+    document.getElementById('new-page-filename').style.borderColor = '#ccc';
+    document.getElementById('new-page-error-msg').style.display = 'none';
+}
 
 
 
@@ -428,7 +578,7 @@ function openFtpModal() {
         document.getElementById('ftp-root').value = config.remoteRoot || '/';
         // Par sécurité, on ne remplit pas le mot de passe automatiquement ou on le stocke
         // Pour cet exemple, on suppose que l'utilisateur le remet, ou on le stocke dans le json (risqué mais pratique)
-        document.getElementById('ftp-pass').value = config.password || ''; 
+        document.getElementById('ftp-pass').value = config.password || '';
     }
 
     document.getElementById('ftp-modal').style.display = 'flex';
@@ -459,7 +609,7 @@ async function lancerDeploiement() {
     // 2. Générer le site dans un dossier temporaire
     // On utilise un dossier '_temp_deploy' à la racine du projet
     const tempBuildDir = path.join(currentProjectDir, '_temp_deploy');
-    
+
     // On sauvegarde la config pour la prochaine fois
     ftpManager.saveConfig(currentProjectDir, config);
 
@@ -473,12 +623,12 @@ async function lancerDeploiement() {
         // 3. Si le build est OK, on lance l'upload FTP
         try {
             await ftpManager.deploy(config, tempBuildDir, afficherMessage);
-            
+
             // Succès !
             alert("Site mis à ligne avec succès ! 🌍");
-            
+
             // Nettoyage : on supprime le dossier temporaire (optionnel)
-            try { fs.rmSync(tempBuildDir, { recursive: true, force: true }); } catch(e) {}
+            try { fs.rmSync(tempBuildDir, { recursive: true, force: true }); } catch (e) { }
 
         } catch (ftpError) {
             // L'erreur est déjà gérée dans le callback afficherMessage via ftpManager
@@ -513,7 +663,7 @@ function configurerGitHub() {
 
     // Création du fichier
     const success = githubManager.setupPages(currentProjectDir, afficherMessage);
-    
+
     if (success) {
         // --- LE RAPPEL IMPORTANT EST ICI ---
         alert(`✅ Fichier de configuration créé avec succès !
@@ -529,7 +679,7 @@ Pour que le site fonctionne, vous devez activer "GitHub Actions" sur le site web
 Une fois cela fait :
 1. Revenez ici et cliquez sur '💾 Sauvegarder l'état'.
 2. Cliquez sur '☁️ Publier sur Internet'.`);
-        
+
         // On lance la sauvegarde automatiquement pour gagner du temps
         nouvelleSauvegarde();
     }
@@ -550,6 +700,8 @@ window.nouvelleSauvegarde = nouvelleSauvegarde;
 window.revenirAuPresent = revenirAuPresent;
 window.pushSite = pushSite;
 window.configurerGitHub = configurerGitHub;
+window.fermerModalePage = fermerModalePage;
+window.validerCreationPage = validerCreationPage;
 
 // Exports pour les modules externes (feature camarade)
 window.getCurrentProjectDir = () => currentProjectDir;

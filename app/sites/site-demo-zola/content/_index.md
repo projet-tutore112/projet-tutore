@@ -1,7 +1,7 @@
 +++
-title = "Bienvenue sur l'accueil"
-sort_by = "date"
-template = "index.html"
+title = "Agence Spatiale"
+description = "Exploration des confins du système solaire."
+template = "home.html"
 +++
 # Bonjour !
 

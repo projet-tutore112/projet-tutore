@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container" style="max-width: 600px; margin: 50px auto;">
+    <h1>Contactez-nous</h1>
+    <p>Une question ? Un projet ? Écrivez-nous via le formulaire ci-dessous.</p>
+    <form style="display: flex; flex-direction: column; gap: 15px;">
+        <input type="text" placeholder="Votre nom" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+        <input type="email" placeholder="Votre email" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
+        <textarea placeholder="Votre message" rows="5" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd;"></textarea>
+        <button type="submit" class="btn btn-primary" style="border: none; cursor: pointer;">Envoyer le message</button>
+    </form>
+</div>
+{% endblock content %}
