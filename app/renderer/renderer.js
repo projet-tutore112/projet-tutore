@@ -411,66 +411,102 @@ function voirVersionRelais(hash) {
 }
 
 // ============================================================
-// 7. AJOUT DE PAGE (NOUVELLE FONCTIONNALITÉ)
+// 7. AJOUT DE PAGE (AMÉLIORÉ : PROJET + APP)
 // ============================================================
 const templateEngine = require('./templateEngine');
+
+// ⚠️ Ajuste ce chemin pour qu'il pointe vers le dossier templates DE L'APPLICATION
+// Si renderer.js est dans /app/renderer/, alors ../templates pointe vers /app/templates/
+const APP_TEMPLATES_DIR = path.join(__dirname, '../templates'); 
 
 window.creerNouvellePage = () => {
     if (!currentProjectDir) return alert("Veuillez charger un projet.");
 
-    // 1. Lister les dossiers
+    // 1. Lister les dossiers du projet (content)
     const contentPath = path.join(currentProjectDir, 'content');
     const getSubDirs = (dir) => fs.readdirSync(dir, { withFileTypes: true })
         .filter(dirent => dirent.isDirectory()).map(dirent => dirent.name);
-
+    
     const folders = ["(Racine)", ...getSubDirs(contentPath)];
     document.getElementById('new-page-folder').innerHTML = folders.map(f => `<option value="${f}">${f}</option>`).join('');
 
-    // 2. Lister les templates du site
-    const templatesDir = path.join(currentProjectDir, 'templates');
-    const templates = templateEngine.getTemplates(templatesDir);
+    // 2. Lister les templates (Projet + Appli)
+    const projectTemplatesDir = path.join(currentProjectDir, 'templates');
+    
+    // On utilise la nouvelle fonction getTemplatesFromDir
+    const projectTemplates = templateEngine.getTemplatesFromDir(projectTemplatesDir, 'project');
+    const appTemplates = templateEngine.getTemplatesFromDir(APP_TEMPLATES_DIR, 'app');
 
-    const templateSelect = document.getElementById('new-page-template');
-    templateSelect.innerHTML = templates.map(t => `<option value="${t.id}">${t.label}</option>`).join('');
+    const select = document.getElementById('new-page-template');
+    select.innerHTML = '';
+
+    // Groupe 1 : Templates du Projet
+    if (projectTemplates.length > 0) {
+        const groupProject = document.createElement('optgroup');
+        groupProject.label = "📂 Templates du Projet";
+        projectTemplates.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.fullPath; // IMPORTANT : La valeur est le chemin complet
+            opt.innerText = t.label;
+            groupProject.appendChild(opt);
+        });
+        select.appendChild(groupProject);
+    }
+
+    // Groupe 2 : Modèles de l'Application
+    if (appTemplates.length > 0) {
+        const groupApp = document.createElement('optgroup');
+        groupApp.label = "✨ Modèles de l'Application";
+        appTemplates.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.fullPath; // IMPORTANT : La valeur est le chemin complet
+            opt.innerText = t.label;
+            groupApp.appendChild(opt);
+        });
+        select.appendChild(groupApp);
+    }
 
     document.getElementById('modal-container').style.display = 'flex';
+    document.getElementById('new-page-error-msg').style.display = 'none';
 
     // Charger les champs du premier template par défaut
-    updateTemplateFields();
+    if (select.options.length > 0) {
+        select.selectedIndex = 0;
+        updateTemplateFields();
+    }
 };
 
 window.updateTemplateFields = () => {
-    const templateName = document.getElementById('new-page-template').value;
+    const templateFullPath = document.getElementById('new-page-template').value;
     const fileName = document.getElementById('new-page-filename').value.trim();
     const container = document.getElementById('template-fields-container');
 
-    if (!templateName) return;
+    if (!templateFullPath) return;
 
-    const templatePath = path.join(currentProjectDir, 'templates', templateName);
-    const analysis = templateEngine.analyseTemplate(templatePath);
+    // Analyse basée sur le chemin complet (qu'il vienne de App ou Projet)
+    const analysis = templateEngine.analyseTemplate(templateFullPath);
     const allVars = [...analysis.pageVars, ...analysis.extraVars];
-    
-    if (container.dataset.currentTemplate !== templateName) {
+
+    // Reset si changement de template
+    if (container.dataset.currentTemplate !== templateFullPath) {
         container.innerHTML = '';
-        container.dataset.currentTemplate = templateName;
+        container.dataset.currentTemplate = templateFullPath;
     }
 
     const today = new Date().toISOString().split('T')[0];
 
     allVars.forEach(varName => {
         let input = container.querySelector(`[data-key="${varName}"]`);
-
-        // Valeur suggérée par le système
+        
         let suggestedValue = "";
         if (varName === 'date') suggestedValue = today;
         else if (varName === 'title') {
-            suggestedValue = fileName ?
-                fileName.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) :
+            suggestedValue = fileName ? 
+                fileName.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
                 "Nouveau Titre";
         } else if (varName === 'draft') suggestedValue = "false";
 
         if (!input) {
-            // Création du champ s'il n'existe pas encore
             const div = document.createElement('div');
             div.style.marginBottom = "10px";
             div.innerHTML = `
@@ -485,7 +521,6 @@ window.updateTemplateFields = () => {
             `;
             container.appendChild(div);
         } else {
-            // MISE À JOUR : On ne change la valeur QUE si l'utilisateur n'a pas encore écrit dedans
             if (input.dataset.userEdited === "false") {
                 input.value = suggestedValue;
             }
@@ -498,54 +533,77 @@ async function validerCreationPage() {
     const fileNameInput = document.getElementById('new-page-filename');
     const fileName = fileNameInput.value.trim();
     const folderChoice = document.getElementById('new-page-folder').value;
-    const templateName = document.getElementById('new-page-template').value;
+    
+    // On récupère le chemin complet depuis le select
+    const templateFullPath = document.getElementById('new-page-template').value;
+    const templateFileName = path.basename(templateFullPath); // ex: "blog.html"
 
-    // Cache l'erreur précédente au début du clic
     errorDiv.style.display = 'none';
 
     if (!fileName) {
-        errorDiv.innerText = "⚠️ Le nom du fichier est requis.";
+        errorDiv.innerText = "Le nom du fichier est requis.";
         errorDiv.style.display = 'block';
-        fileNameInput.style.borderColor = '#e74c3c'; // Petit retour visuel sur l'input
+        fileNameInput.style.borderColor = '#e74c3c';
         return;
     }
 
-    // Récupérer les valeurs des champs dynamiques
     const values = {};
     document.querySelectorAll('.template-input').forEach(input => {
         values[input.dataset.key] = input.value;
     });
 
     try {
-        const templatePath = path.join(currentProjectDir, 'templates', templateName);
-        const analysis = templateEngine.analyseTemplate(templatePath); //
+        // 1. Analyse (depuis le fichier source, peu importe où il est)
+        const analysis = templateEngine.analyseTemplate(templateFullPath);
+        
+        // 2. Génération Markdown (avec juste le nom du fichier pour le frontmatter)
+        const markdownContent = templateEngine.generateMarkdown(templateFileName, analysis, values);
 
-        const markdownContent = templateEngine.generateMarkdown(templateName, analysis, values); //
-
+        // 3. Dossier cible
         const section = folderChoice === "(Racine)" ? "" : folderChoice;
         const targetDir = path.join(currentProjectDir, 'content', section);
         if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
 
         const finalPath = path.join(targetDir, `${fileName}.md`);
-
+        
         if (fs.existsSync(finalPath)) {
-            errorDiv.innerText = "❌ Ce fichier existe déjà dans ce dossier.";
+            errorDiv.innerText = "Ce fichier existe déjà ici.";
             errorDiv.style.display = 'block';
             return;
         }
 
+        // 4. IMPORTATION AUTO DU TEMPLATE
+        // On vérifie si le template existe dans le dossier templates du PROJET
+        const projectTemplatesDir = path.join(currentProjectDir, 'templates');
+        const targetTemplatePath = path.join(projectTemplatesDir, templateFileName);
+
+        // S'il n'existe pas dans le projet, on le copie depuis la source (l'appli)
+        if (!fs.existsSync(targetTemplatePath)) {
+            if (!fs.existsSync(projectTemplatesDir)) fs.mkdirSync(projectTemplatesDir);
+            
+            fs.copyFileSync(templateFullPath, targetTemplatePath);
+            console.log(`Template importé dans le projet : ${templateFileName}`);
+            
+            // Optionnel : Copier aussi le .yml associé s'il existe
+            const ymlSource = templateFullPath.replace('.html', '.yml');
+            if (fs.existsSync(ymlSource)) {
+                fs.copyFileSync(ymlSource, targetTemplatePath.replace('.html', '.yml'));
+            }
+        }
+
+        // 5. Écriture du fichier MD
         fs.writeFileSync(finalPath, markdownContent, 'utf8');
 
         fermerModalePage();
-        chargerListeFichiers(); //
-        ouvrirFichier(finalPath); //
-
-        // Notification discrète dans l'appli principale
-        afficherMessage("Page créée avec succès !", false); //
+        chargerListeFichiers();
+        ouvrirFichier(finalPath);
+        
+        afficherMessage(`Page créée ! (Template ${templateFileName} utilisé)`, false);
 
     } catch (e) {
-        errorDiv.innerText = "🔥 Erreur : " + e.message;
+        errorDiv.innerText = "Erreur : " + e.message;
         errorDiv.style.display = 'block';
+        console.error(e);
     }
 }
 
@@ -556,7 +614,6 @@ function fermerModalePage() {
     document.getElementById('new-page-filename').style.borderColor = '#ccc';
     document.getElementById('new-page-error-msg').style.display = 'none';
 }
-
 
 
 // ============================================================
@@ -686,7 +743,58 @@ Une fois cela fait :
 }
 
 // ============================================================
-// 11. EXPORTS GLOBAUX
+// 11. GESTION SUPPRESSION
+// ============================================================
+
+function demanderSuppression() {
+    if (!currentFilePath) {
+        afficherMessage("Aucun fichier ouvert.", true); //
+        return;
+    }
+
+    // Affiche le nom du fichier dans la modale
+    const nomFichier = path.basename(currentFilePath);
+    document.getElementById('delete-filename-display').innerText = nomFichier;
+
+    // Ouvre la modale
+    document.getElementById('modal-delete-confirm').style.display = 'flex';
+}
+
+function fermerModalSuppression() {
+    document.getElementById('modal-delete-confirm').style.display = 'none';
+}
+
+function confirmerSuppression() {
+    if (!currentFilePath) return;
+
+    try {
+        // Suppression physique du fichier
+        fs.unlinkSync(currentFilePath);
+
+        // Nettoyage de l'interface
+        fermerModalSuppression();
+        afficherMessage("Fichier supprimé avec succès.", false); //
+        
+        // Reset des variables globales
+        currentFilePath = null;
+        currentAst = null; //
+        
+        // On vide l'éditeur
+        document.getElementById('form-container').innerHTML = 
+            '<p style="color: #666; font-style: italic;">Sélectionnez un fichier .md pour commencer.</p>';
+
+        // Mise à jour de la liste des fichiers à gauche
+        chargerListeFichiers(); //
+
+    } catch (e) {
+        console.error(e);
+        fermerModalSuppression();
+        afficherMessage("Erreur lors de la suppression : " + e.message, true); //
+    }
+}
+
+// ============================================================
+// 12. EXPORTS GLOBAUX
 // ============================================================
 
 window.choisirDossier = choisirDossier;
@@ -702,8 +810,9 @@ window.pushSite = pushSite;
 window.configurerGitHub = configurerGitHub;
 window.fermerModalePage = fermerModalePage;
 window.validerCreationPage = validerCreationPage;
-
-// Exports pour les modules externes (feature camarade)
+window.demanderSuppression = demanderSuppression;
+window.fermerModalSuppression = fermerModalSuppression;
+window.confirmerSuppression = confirmerSuppression;
 window.getCurrentProjectDir = () => currentProjectDir;
 window.chargerListeFichiers = chargerListeFichiers;
 window.ouvrirFichier = ouvrirFichier;

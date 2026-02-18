@@ -1,0 +1,30 @@
+id: member
+label: member
+description: >
+  Auto-généré.
+fields:
+
+  - name: extra.member_photo
+    label: Member Photo
+    type: text
+    required: false
+
+  - name: extra.role
+    label: Role
+    type: text
+    required: false
+
+  - name: title
+    label: Title
+    type: text
+    required: false
+
+  - name: content
+    label: Content
+    type: textarea
+    required: false
+
+  - name: extra.email
+    label: Email
+    type: text
+    required: false

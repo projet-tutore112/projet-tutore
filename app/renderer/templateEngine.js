@@ -3,36 +3,47 @@ const path = require("path");
 const yaml = require("js-yaml");
 
 /* ======================================================
-   1️⃣  RÉCUPÉRATION DES TEMPLATES
+1️ RÉCUPÉRATION DES TEMPLATES (MODIFIÉ)
 ====================================================== */
 
-function getTemplates(templatesDir) {
+// Nouvelle version qui scanne un dossier spécifique
+function getTemplatesFromDir(templatesDir, sourceName) {
     if (!fs.existsSync(templatesDir)) return [];
 
     const files = fs.readdirSync(templatesDir)
         .filter(f => f.endsWith(".html"));
 
     return files.map(file => {
-
         const fullPath = path.join(templatesDir, file);
 
-        // Génère le YAML automatiquement si absent
-        ensureYamlForTemplate(fullPath);
-
+        // On tente de générer/lire la config YAML
+        try { ensureYamlForTemplate(fullPath); } catch(e) {}
         const config = loadTemplateConfig(fullPath);
 
         return {
-            id: file,
-            label: config?.label || file.replace(".html", "")
+            filename: file,              // ex: "blog.html"
+            fullPath: fullPath,          // ex: "C:/.../blog.html"
+            label: config?.label || file.replace(".html", ""),
+            source: sourceName           // 'project' ou 'app'
         };
     });
 }
 
+// Gardé pour compatibilité si besoin, mais on utilisera surtout celle du dessus
+function getTemplates(templatesDir) {
+    return getTemplatesFromDir(templatesDir, 'project').map(t => ({
+        id: t.filename,
+        label: t.label
+    }));
+}
+
 /* ======================================================
-   2️⃣  ANALYSE SIMPLE (ancienne logique conservée)
+2️  ANALYSE SIMPLE
 ====================================================== */
 
 function analyseTemplate(filePath) {
+    if (!fs.existsSync(filePath)) return { pageVars: [], extraVars: [] };
+
     const content = fs.readFileSync(filePath, "utf8");
 
     const pageVars = new Set();
@@ -42,7 +53,7 @@ function analyseTemplate(filePath) {
     if (pageMatches) {
         pageMatches.forEach(m => {
             const key = m.split(".")[1];
-            if (!["content", "permalink", "extra"].includes(key)) {
+            if (!["content", "permalink", "extra", "html"].includes(key)) {
                 pageVars.add(key);
             }
         });
@@ -63,7 +74,7 @@ function analyseTemplate(filePath) {
 }
 
 /* ======================================================
-   3️⃣  GÉNÉRATION MARKDOWN
+3️  GÉNÉRATION MARKDOWN
 ====================================================== */
 
 function generateMarkdown(templateName, analysis, values) {
@@ -78,7 +89,8 @@ function generateMarkdown(templateName, analysis, values) {
         }
     });
 
-    md += `template = "${templateName}"\n`;
+    // Zola a besoin du nom de fichier, pas du chemin complet
+    md += `template = "${path.basename(templateName)}"\n`;
 
     if (analysis.extraVars.length > 0) {
         md += "\n[extra]\n";
@@ -95,58 +107,42 @@ function generateMarkdown(templateName, analysis, values) {
 }
 
 /* ======================================================
-   4️⃣  CHARGEMENT CONFIG YAML
+4️  CHARGEMENT CONFIG YAML
 ====================================================== */
 
 function loadTemplateConfig(templatePath) {
     const ymlPath = templatePath.replace(".html", ".yml");
-
     if (!fs.existsSync(ymlPath)) return null;
-
-    const file = fs.readFileSync(ymlPath, "utf8");
-    return yaml.load(file);
+    try {
+        const file = fs.readFileSync(ymlPath, "utf8");
+        return yaml.load(file);
+    } catch (e) { return null; }
 }
 
 /* ======================================================
-   5️⃣  EXTRACTION VARIABLES TWIG (AMÉLIORÉE)
+5️  EXTRACTION VARIABLES TWIG
 ====================================================== */
 
 function extractVariablesFromTemplate(htmlContent) {
-
     const regex = /{{\s*([^}]+)\s*}}/g;
     const variables = new Set();
-
     let match;
     while ((match = regex.exec(htmlContent)) !== null) {
-
         let raw = match[1].trim();
-
-        // Supprime filtres twig (| safe etc.)
         raw = raw.split("|")[0].trim();
-
-        // Ignore fonctions type get_url()
         if (raw.includes("(")) continue;
-
-        if (raw.startsWith("page.")) {
-            variables.add(raw.replace("page.", ""));
-        }
-
-        if (raw.startsWith("taxonomies.")) {
-            variables.add(raw);
-        }
+        if (raw.startsWith("page.")) variables.add(raw.replace("page.", ""));
+        if (raw.startsWith("taxonomies.")) variables.add(raw);
     }
-
     return Array.from(variables);
 }
 
 /* ======================================================
-   6️⃣  DÉTECTION TYPE AUTO
+6️  DÉTECTION TYPE AUTO
 ====================================================== */
 
 function detectFieldType(name) {
-
     const v = name.toLowerCase();
-
     if (v.includes("date")) return "date";
     if (v.includes("description") || v.includes("summary")) return "textarea";
     if (v.includes("content")) return "textarea";
@@ -156,82 +152,44 @@ function detectFieldType(name) {
     if (v.includes("price")) return "text";
     if (v.includes("email")) return "text";
     if (v.includes("url") || v.includes("link")) return "text";
-
     return "text";
 }
 
 /* ======================================================
-   7️⃣  GÉNÉRATION YAML
+7️ GÉNÉRATION YAML
 ====================================================== */
 
 function generateYaml(templateId, variables) {
-
     if (variables.length === 0) {
-        return `id: ${templateId}
-label: ${templateId}
-
-description: >
-  Template sans variables détectées automatiquement.
-
-fields: []
-`;
+        return `id: ${templateId}\nlabel: ${templateId}\ndescription: >\n  Template sans variables détectées.\nfields: []\n`;
     }
-
     const fields = variables.map(variable => {
-
         const type = detectFieldType(variable);
-
-        const label = variable
-            .replace("extra.", "")
-            .replace("taxonomies.", "")
-            .replace(/_/g, " ")
-            .replace(/\b\w/g, l => l.toUpperCase());
-
-        return `  - name: ${variable}
-    label: ${label}
-    type: ${type}
-    required: false`;
+        const label = variable.replace("extra.", "").replace("taxonomies.", "").replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+        return `  - name: ${variable}\n    label: ${label}\n    type: ${type}\n    required: false`;
     }).join("\n\n");
-
-    return `id: ${templateId}
-label: ${templateId}
-
-description: >
-  Fichier généré automatiquement depuis le template HTML.
-
-fields:
-
-${fields}
-`;
+    return `id: ${templateId}\nlabel: ${templateId}\ndescription: >\n  Auto-généré.\nfields:\n\n${fields}\n`;
 }
 
 /* ======================================================
-   8️⃣  AUTO-GÉNÉRATION YAML SI ABSENT
+8️ AUTO-GÉNÉRATION YAML SI ABSENT
 ====================================================== */
 
 function ensureYamlForTemplate(templatePath) {
-
     const ymlPath = templatePath.replace(".html", ".yml");
-
     if (fs.existsSync(ymlPath)) return;
-
-    const html = fs.readFileSync(templatePath, "utf8");
-    const variables = extractVariablesFromTemplate(html);
-
-    const templateId = path.basename(templatePath, ".html");
-    const yamlContent = generateYaml(templateId, variables);
-
-    fs.writeFileSync(ymlPath, yamlContent, "utf8");
-
-    console.log("✔ YAML généré automatiquement :", ymlPath);
+    try {
+        const html = fs.readFileSync(templatePath, "utf8");
+        const variables = extractVariablesFromTemplate(html);
+        const templateId = path.basename(templatePath, ".html");
+        const yamlContent = generateYaml(templateId, variables);
+        fs.writeFileSync(ymlPath, yamlContent, "utf8");
+    } catch (e) { console.error("Err YAML gen:", e); }
 }
-
-/* ======================================================
-   EXPORT
-====================================================== */
 
 module.exports = {
     getTemplates,
+    getTemplatesFromDir, // Exporté !
     analyseTemplate,
     generateMarkdown,
     loadTemplateConfig,
