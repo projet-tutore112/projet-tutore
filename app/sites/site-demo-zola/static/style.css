@@ -41,3 +41,12 @@ nav a:hover { color: var(--primary); }
 .post-content { background: white; padding: 40px; border-radius: 10px; box-shadow: var(--shadow); }
 
 footer { background: var(--dark); color: white; padding: 60px 0; text-align: center; margin-top: 50px; }
+
+.post-content img {
+    max-width: 100%;    /* L'image ne dépassera jamais 100% de la largeur disponible */
+    height: auto;       /* Garde les proportions (ratio) intactes */
+    display: block;     /* Permet de gérer les marges correctement */
+    margin: 20px auto;  /* Centre l'image et ajoute de l'espace haut/bas */
+    border-radius: 8px; /* Optionnel : arrondit les coins pour faire plus joli */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); /* Optionnel : petite ombre */
+}

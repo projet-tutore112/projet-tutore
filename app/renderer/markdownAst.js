@@ -15,7 +15,9 @@ function astToMarkdown(ast) {
             fences: true,
             incrementListMarker: false,
             handlers: {
-                html: (h, node) => node.value // Pour garder la vidéo HTML intacte
+                // CORRECTION ICI : Le premier argument EST le nœud.
+                // Cela évite l'erreur "Cannot read properties of undefined"
+                html: (node) => node.value 
             }
         })
         .stringify(ast);
@@ -72,11 +74,10 @@ function insertCodeBlockAst(ast) {
     });
 }
 
-// --- MEDIA (CORRIGÉ) ---
+// --- MEDIA ---
 
 /**
  * Ajoute une image DANS un paragraphe (Standard Markdown)
- * Correction du bug de formatage
  */
 function insertImageAst(ast) {
     if (!ast || !ast.children) return;
