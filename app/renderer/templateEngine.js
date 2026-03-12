@@ -51,9 +51,16 @@ function analyseTemplate(filePath) {
 
     const pageMatches = content.match(/page\.(\w+)/g);
     if (pageMatches) {
+        const readOnlyVars = [
+            "content", "permalink", "html", "extra", 
+            "ancestors", "word_count", "reading_time", 
+            "components", "year", "month", "day", 
+            "toc", "lower", "higher"
+        ];
+
         pageMatches.forEach(m => {
             const key = m.split(".")[1];
-            if (!["content", "permalink", "extra", "html"].includes(key)) {
+            if (!readOnlyVars.includes(key)) {
                 pageVars.add(key);
             }
         });

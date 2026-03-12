@@ -177,7 +177,7 @@ function genererFormulaire(frontMatter) {
                 if (newValue.alt !== undefined) imgNode.alt = newValue.alt;
 
             } else if (mode === 'video') {
-                node.value = newValue;
+                currentAst.children[index] = { type: 'html', value: newValue };
 
             } else {
                 if (node.children && node.children.length > 0) {
@@ -208,6 +208,67 @@ function genererFormulaire(frontMatter) {
 // 4. IMPORTS MÉDIA
 // ============================================================
 
+function demanderNomMediaCustom(nomOriginal, extension, type) {
+    return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            display: flex; justify-content: center; align-items: center; z-index: 9999;
+        `;
+
+        const box = document.createElement('div');
+        box.style.cssText = `
+            background: white; padding: 20px; border-radius: 8px; width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        `;
+
+        box.innerHTML = `
+            <h3 style="margin-top: 0; color: #2c3e50;">Renommer ${type === 'video' ? 'la vidéo' : 'l\'image'}</h3>
+            <p style="font-size: 0.85em; color: #666; margin-bottom: 10px;">Sans l'extension (${extension})</p>
+            <input type="text" id="custom-media-name" value="${nomOriginal}" 
+                   style="width: 100%; padding: 8px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px;">
+            <div id="media-error" style="color: #e74c3c; font-size: 0.85em; margin-bottom: 10px; display: none;"></div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button id="btn-cancel-media" style="padding: 6px 12px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #fff;">Annuler</button>
+                <button id="btn-confirm-media" style="background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Importer</button>
+            </div>
+        `;
+
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+
+        const input = box.querySelector('#custom-media-name');
+        input.focus();
+        input.select(); // Sélectionne le texte pour le remplacer directement
+
+        const cleanup = () => document.body.removeChild(overlay);
+
+        box.querySelector('#btn-cancel-media').onclick = () => {
+            cleanup();
+            resolve(null);
+        };
+
+        box.querySelector('#btn-confirm-media').onclick = () => {
+            const val = input.value.trim();
+            if (!val) {
+                const err = box.querySelector('#media-error');
+                err.innerText = "Le nom ne peut pas être vide.";
+                err.style.display = 'block';
+                input.focus();
+                return;
+            }
+            cleanup();
+            resolve(val);
+        };
+
+        // Permettre de valider avec Entrée ou annuler avec Échap
+        input.onkeyup = (e) => {
+            if (e.key === 'Enter') box.querySelector('#btn-confirm-media').click();
+            if (e.key === 'Escape') box.querySelector('#btn-cancel-media').click();
+        };
+    });
+}
+
 async function importerMedia(inputId, previewId, type) {
     if (!currentProjectDir) {
         afficherMessage("Veuillez charger un projet d'abord.", true);
@@ -226,12 +287,38 @@ async function importerMedia(inputId, previewId, type) {
         fs.mkdirSync(dossierCible, { recursive: true });
     }
 
-    const nomFichier = path.basename(cheminSource);
-    const cheminDestination = path.join(dossierCible, nomFichier);
+    const extension = path.extname(cheminSource);
+    const nomOriginal = path.basename(cheminSource, extension);
+
+    // Utilisation de la modale custom (Promesse)
+    const nouveauNom = await demanderNomMediaCustom(nomOriginal, extension, type);
+
+    if (!nouveauNom) {
+        afficherMessage("Importation annulée.", false);
+        return;
+    }
+
+    // Nettoyage du nom
+    let nomNettoye = nouveauNom
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-zA-Z0-9-_]/g, '-')
+        .replace(/-+/g, '-')
+        .toLowerCase();
+
+    let nomFichierFinal = nomNettoye + extension;
+    let cheminDestination = path.join(dossierCible, nomFichierFinal);
+
+    // Auto-incrémentation si le fichier existe déjà (évite le confirm)
+    let compteur = 1;
+    while (fs.existsSync(cheminDestination)) {
+        nomFichierFinal = `${nomNettoye}-${compteur}${extension}`;
+        cheminDestination = path.join(dossierCible, nomFichierFinal);
+        compteur++;
+    }
 
     try {
         fs.copyFileSync(cheminSource, cheminDestination);
-        const cheminZola = `/${subFolder}/${nomFichier}`;
+        const cheminZola = `/${subFolder}/${nomFichierFinal}`;
 
         const input = document.getElementById(inputId);
         if (input) {
@@ -245,7 +332,7 @@ async function importerMedia(inputId, previewId, type) {
             preview.src = `file://${cheminDestination}`;
             preview.style.display = 'block';
         }
-        afficherMessage("Média importé avec succès !", false);
+        afficherMessage(`Média importé : ${nomFichierFinal}`, false);
     } catch (err) {
         afficherMessage(`Erreur copie : ${err.message}`, true);
     }
@@ -415,7 +502,6 @@ function voirVersionRelais(hash) {
 // ============================================================
 const templateEngine = require('./templateEngine');
 
-// ⚠️ Ajuste ce chemin pour qu'il pointe vers le dossier templates DE L'APPLICATION
 // Si renderer.js est dans /app/renderer/, alors ../templates pointe vers /app/templates/
 const APP_TEMPLATES_DIR = path.join(__dirname, '../templates'); 
 
@@ -428,17 +514,16 @@ window.creerNouvellePage = () => {
         .filter(dirent => dirent.isDirectory()).map(dirent => dirent.name);
     
     const folders = ["(Racine)", ...getSubDirs(contentPath)];
-    document.getElementById('new-page-folder').innerHTML = folders.map(f => `<option value="${f}">${f}</option>`).join('');
+    const folderSelect = document.getElementById('new-page-folder');
+    folderSelect.innerHTML = folders.map(f => `<option value="${f}">${f}</option>`).join('');
 
     // 2. Lister les templates (Projet + Appli)
     const projectTemplatesDir = path.join(currentProjectDir, 'templates');
-    
-    // On utilise la nouvelle fonction getTemplatesFromDir
     const projectTemplates = templateEngine.getTemplatesFromDir(projectTemplatesDir, 'project');
     const appTemplates = templateEngine.getTemplatesFromDir(APP_TEMPLATES_DIR, 'app');
 
-    const select = document.getElementById('new-page-template');
-    select.innerHTML = '';
+    const selectTemplate = document.getElementById('new-page-template');
+    selectTemplate.innerHTML = '';
 
     // Groupe 1 : Templates du Projet
     if (projectTemplates.length > 0) {
@@ -446,11 +531,11 @@ window.creerNouvellePage = () => {
         groupProject.label = "📂 Templates du Projet";
         projectTemplates.forEach(t => {
             const opt = document.createElement('option');
-            opt.value = t.fullPath; // IMPORTANT : La valeur est le chemin complet
+            opt.value = t.fullPath;
             opt.innerText = t.label;
             groupProject.appendChild(opt);
         });
-        select.appendChild(groupProject);
+        selectTemplate.appendChild(groupProject);
     }
 
     // Groupe 2 : Modèles de l'Application
@@ -459,19 +544,98 @@ window.creerNouvellePage = () => {
         groupApp.label = "✨ Modèles de l'Application";
         appTemplates.forEach(t => {
             const opt = document.createElement('option');
-            opt.value = t.fullPath; // IMPORTANT : La valeur est le chemin complet
+            opt.value = t.fullPath;
             opt.innerText = t.label;
             groupApp.appendChild(opt);
         });
-        select.appendChild(groupApp);
+        selectTemplate.appendChild(groupApp);
     }
 
+    // 3. Préparer l'interface (Modale et Message d'indication)
     document.getElementById('modal-container').style.display = 'flex';
     document.getElementById('new-page-error-msg').style.display = 'none';
 
-    // Charger les champs du premier template par défaut
-    if (select.options.length > 0) {
-        select.selectedIndex = 0;
+    // Création d'un élément pour afficher le conseil de template
+    let hintSpan = document.getElementById('template-hint-msg');
+    if (!hintSpan) {
+        hintSpan = document.createElement('div');
+        hintSpan.id = 'template-hint-msg';
+        hintSpan.style.fontSize = '0.85em';
+        hintSpan.style.color = '#d35400'; // Orange visible
+        hintSpan.style.marginBottom = '15px';
+        hintSpan.style.fontStyle = 'italic';
+        // On l'insère juste après le selecteur de template
+        selectTemplate.parentNode.insertBefore(hintSpan, selectTemplate.nextSibling);
+    }
+
+    // 4. LOGIQUE DE DÉTECTION DU TEMPLATE DOMINANT
+    folderSelect.onchange = () => {
+        const selectedFolder = folderSelect.value;
+        const section = selectedFolder === "(Racine)" ? "" : selectedFolder;
+        const targetDir = path.join(contentPath, section);
+
+        if (!fs.existsSync(targetDir)) return;
+
+        // On lit les fichiers markdown du dossier
+        const files = fs.readdirSync(targetDir).filter(f => f.endsWith('.md') && f !== '_index.md');
+        
+        if (files.length === 0) {
+            hintSpan.innerText = "";
+            return; // Dossier vide, on laisse l'utilisateur choisir librement
+        }
+
+        // On compte l'occurrence de chaque template
+        const templateCounts = {};
+        files.forEach(file => {
+            try {
+                const filePath = path.join(targetDir, file);
+                const { data } = fileManager.parseMarkdownFile(filePath); // Existant dans ton code
+                if (data && data.template) {
+                    templateCounts[data.template] = (templateCounts[data.template] || 0) + 1;
+                }
+            } catch (e) {
+                // Ignore les fichiers mal formés
+            }
+        });
+
+        // On trouve le template le plus utilisé
+        let mostUsedTemplate = null;
+        let maxCount = 0;
+        for (const [tpl, count] of Object.entries(templateCounts)) {
+            if (count > maxCount) {
+                mostUsedTemplate = tpl;
+                maxCount = count;
+            }
+        }
+
+        // Si on a trouvé une tendance, on met à jour l'interface
+        if (mostUsedTemplate) {
+            let foundInOptions = false;
+            for (let i = 0; i < selectTemplate.options.length; i++) {
+                // On vérifie si la valeur (qui est le chemin complet) se termine par le nom du template
+                if (selectTemplate.options[i].value.endsWith(mostUsedTemplate)) {
+                    selectTemplate.selectedIndex = i;
+                    foundInOptions = true;
+                    break;
+                }
+            }
+
+            if (foundInOptions) {
+                hintSpan.innerHTML = `💡 <b>Conseil :</b> Le modèle "<b>${mostUsedTemplate}</b>" a été auto-sélectionné (utilisé par ${maxCount} page(s) dans ce dossier).`;
+                updateTemplateFields();
+            } else {
+                hintSpan.innerText = "";
+            }
+        } else {
+            hintSpan.innerText = "";
+        }
+    };
+
+    // 5. Initialisation au lancement de la modale
+    if (selectTemplate.options.length > 0) {
+        selectTemplate.selectedIndex = 0;
+        // Déclencher manuellement l'événement pour analyser le dossier par défaut (ex: "Racine")
+        folderSelect.dispatchEvent(new Event('change')); 
         updateTemplateFields();
     }
 };
