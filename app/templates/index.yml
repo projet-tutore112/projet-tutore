@@ -1,0 +1,38 @@
+id: blog-simple
+label: Blog Simple avec Image & Vidéo
+
+description: >
+  Template de blog minimaliste avec image de couverture
+  et vidéo optionnelle.
+
+fields:
+
+  - name: title
+    label: Titre de la page
+    type: text
+    required: true
+    help: Titre principal affiché en haut de l'article
+
+  - name: date
+    label: Date de publication
+    type: date
+    required: true
+    help: Format recommandé YYYY-MM-DD
+
+  - name: description
+    label: Description SEO
+    type: textarea
+    required: false
+    help: Courte description utilisée pour le référencement
+
+  - name: extra.hero_image
+    label: Image de couverture (URL ou chemin)
+    type: text
+    required: false
+    help: Exemple : /images/hero.jpg
+
+  - name: extra.demo_video
+    label: Vidéo de démonstration (MP4)
+    type: text
+    required: false
+    help: Exemple : /videos/demo.mp4

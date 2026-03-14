@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ page.title }}</title>
+</head>
+<body>
+
+<h1>Newsletter #{{ page.extra.issue_number }}</h1>
+<p>Date : {{ page.date }}</p>
+
+<hr>
+
+{{ page.content | safe }}
+
+<footer>
+    <p>{{ page.extra.footer_note }}</p>
+</footer>
+
+</body>
+</html>

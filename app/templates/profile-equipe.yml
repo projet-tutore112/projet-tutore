@@ -1,0 +1,30 @@
+id: profile-equipe
+label: profile-equipe
+description: >
+  Auto-généré.
+fields:
+
+  - name: title
+    label: Title
+    type: text
+    required: false
+
+  - name: extra.photo
+    label: Photo
+    type: text
+    required: false
+
+  - name: extra.role
+    label: Role
+    type: text
+    required: false
+
+  - name: extra.email
+    label: Email
+    type: text
+    required: false
+
+  - name: content
+    label: Content
+    type: textarea
+    required: false

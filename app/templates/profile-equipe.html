@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ page.title }}</title>
+</head>
+<body>
+
+<h1>{{ page.title }}</h1>
+
+<img src="{{ page.extra.photo }}" width="150">
+
+<p><strong>Poste :</strong> {{ page.extra.role }}</p>
+<p><strong>Email :</strong> {{ page.extra.email }}</p>
+
+{{ page.content | safe }}
+
+</body>
+</html>

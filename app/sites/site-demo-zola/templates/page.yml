@@ -1,0 +1,25 @@
+id: page
+label: page
+description: >
+  Auto-généré.
+fields:
+
+  - name: extra.cover_image
+    label: Cover Image
+    type: text
+    required: false
+
+  - name: title
+    label: Title
+    type: text
+    required: false
+
+  - name: date
+    label: Date
+    type: date
+    required: false
+
+  - name: content
+    label: Content
+    type: textarea
+    required: false

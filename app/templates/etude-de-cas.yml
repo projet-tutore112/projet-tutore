@@ -1,0 +1,48 @@
+id: etude-de-cas
+label: Étude de cas
+
+description: >
+  Présentation détaillée d’un projet client avec problème,
+  solution et résultats.
+
+fields:
+
+  - name: title
+    label: Titre de l'étude
+    type: text
+    required: true
+
+  - name: date
+    label: Date
+    type: date
+    required: false
+
+  - name: description
+    label: Résumé court
+    type: textarea
+    required: false
+
+  - name: extra.client_name
+    label: Nom du client
+    type: text
+    required: false
+
+  - name: extra.client_logo
+    label: Logo du client (URL)
+    type: text
+    required: false
+
+  - name: extra.problem
+    label: Problématique
+    type: textarea
+    required: false
+
+  - name: extra.solution
+    label: Solution apportée
+    type: textarea
+    required: false
+
+  - name: extra.results
+    label: Résultats obtenus
+    type: textarea
+    required: false

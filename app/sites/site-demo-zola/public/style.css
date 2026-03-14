@@ -1,0 +1,52 @@
+:root {
+    --primary: #d35400;
+    --dark: #2c3e50;
+    --light: #f4f7f6;
+    --text: #333;
+    --white: #ffffff;
+    --shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+body { font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 0; color: var(--text); background: var(--light); line-height: 1.6; }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+/* HEADER & NAV */
+header.main-header { background: var(--white); padding: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+.nav-inner { display: flex; justify-content: space-between; align-items: center; }
+.logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); text-decoration: none; }
+nav a { margin-left: 20px; text-decoration: none; color: var(--dark); font-weight: 600; transition: 0.3s; }
+nav a:hover { color: var(--primary); }
+
+/* HERO BANNER (home.html) */
+.hero-banner { background: var(--dark); color: white; padding: 100px 0; text-align: center; }
+.hero-banner h1 { font-size: 3.5rem; margin: 0; }
+.lead { font-size: 1.2rem; opacity: 0.9; margin: 20px 0 40px; }
+.btn { padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: bold; transition: 0.3s; display: inline-block; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-outline { border: 2px solid white; color: white; margin-left: 10px; }
+.btn:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+
+/* GRID SYSTEM (index.html) */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; margin: 40px 0; }
+.pro-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: var(--shadow); transition: 0.3s; text-decoration: none; color: inherit; }
+.pro-card:hover { transform: translateY(-10px); }
+.card-thumb { height: 200px; background-size: cover; background-position: center; position: relative; }
+.badge { position: absolute; top: 15px; left: 15px; background: var(--primary); color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+.card-content { padding: 20px; }
+
+/* SINGLE PAGE (page.html) */
+.post-hero { height: 400px; background-size: cover; background-position: center; display: flex; align-items: center; color: white; text-align: center; }
+.post-container { display: grid; grid-template-columns: 250px 1fr; gap: 50px; margin: -50px auto 50px; }
+.post-sidebar { background: white; padding: 20px; border-radius: 10px; box-shadow: var(--shadow); height: fit-content; }
+.post-content { background: white; padding: 40px; border-radius: 10px; box-shadow: var(--shadow); }
+
+footer { background: var(--dark); color: white; padding: 60px 0; text-align: center; margin-top: 50px; }
+
+.post-content img {
+    max-width: 100%;    /* L'image ne dépassera jamais 100% de la largeur disponible */
+    height: auto;       /* Garde les proportions (ratio) intactes */
+    display: block;     /* Permet de gérer les marges correctement */
+    margin: 20px auto;  /* Centre l'image et ajoute de l'espace haut/bas */
+    border-radius: 8px; /* Optionnel : arrondit les coins pour faire plus joli */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); /* Optionnel : petite ombre */
+}

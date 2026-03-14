@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero-banner">
+    <div class="container">
+        <h1>{{ config.title }}</h1>
+        <p class="lead">{{ config.description }}</p>
+        <div class="cta-group">
+            <a href="/missions" class="btn btn-primary">Voir les rapports de mission</a>
+            <a href="/equipe" class="btn btn-outline">Rencontrer l'équipage</a>
+        </div>
+    </div>
+</section>
+
+<section class="featured-grid container">
+    <h2>Dernières transmissions</h2>
+    <div class="grid">
+        {# CORRECTION ICI : on vise le dossier "missions" #}
+        {% set section_missions = get_section(path="missions/_index.md") %}
+        
+        {% for p in section_missions.pages | slice(end=3) %}
+            <div class="card">
+                <div class="card-img" style="background-image: url('{{ p.extra.cover_image | default(value='/images/placeholder.jpg') }}')"></div>
+                <div class="card-body">
+                    <h3>{{ p.title }}</h3>
+                    <p>{{ p.description | default(value="Rapport classifié.") | truncate(length=100) }}</p>
+                    <a href="{{ p.permalink }}">Lire le rapport</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock content %}

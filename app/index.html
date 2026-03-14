@@ -13,9 +13,10 @@
             margin: 0;
             background-color: #f4f4f4;
             color: #333;
+            overflow: hidden;
         }
 
-        /* --- SIDEBAR (GAUCHE) --- */
+        /* --- SIDEBAR --- */
         #sidebar {
             width: 280px;
             background: #2c3e50;
@@ -35,28 +36,29 @@
             padding: 10px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
             border-bottom: 1px solid #34495e;
         }
 
         #file-list {
             flex: 1;
             overflow-y: auto;
+            background: #243342;
         }
 
         #file-list div {
-            padding: 12px 20px;
+            padding: 8px 15px;
             cursor: pointer;
             transition: background 0.2s;
-            border-bottom: 1px solid #34495e;
-            font-size: 14px;
+            border-bottom: 1px solid #2c3e50;
+            font-size: 13px;
         }
 
         #file-list div:hover {
             background-color: #34495e;
         }
 
-        /* --- ZONE ÉDITEUR (DROITE) --- */
+        /* --- ZONE ÉDITEUR --- */
         #editor {
             flex: 1;
             padding: 30px;
@@ -72,7 +74,7 @@
             padding-bottom: 10px;
         }
 
-        /* Styles des formulaires générés par JS */
+        /* --- UI ELEMENTS --- */
         .form-group {
             margin-bottom: 15px;
         }
@@ -84,23 +86,17 @@
             font-size: 0.9em;
         }
 
-        .form-group input[type="text"],
-        .form-group textarea,
-        .form-group select {
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
             box-sizing: border-box;
-            font-family: inherit;
         }
 
-        .form-group textarea {
-            height: 150px;
-            resize: vertical;
-        }
-
-        /* BOUTONS */
+        /* --- BOUTONS --- */
         .btn {
             padding: 10px 15px;
             border: none;
@@ -109,6 +105,7 @@
             font-weight: bold;
             transition: opacity 0.2s;
             text-align: center;
+            font-size: 14px;
         }
 
         .btn:hover {
@@ -120,67 +117,80 @@
             color: white;
         }
 
-        /* Bleu */
         .btn-success {
             background-color: #27ae60;
             color: white;
         }
 
-        /* Vert */
         .btn-danger {
             background-color: #e74c3c;
             color: white;
         }
 
-        /* Rouge */
         .btn-warning {
             background-color: #f39c12;
             color: white;
         }
 
-        /* Orange */
         .btn-purple {
             background-color: #8e44ad;
             color: white;
         }
 
-        /* Violet */
+        .btn-dark {
+            background-color: #333;
+            color: white;
+        }
 
-        /* Messages de statut (Succès/Erreur) */
+        .btn-orange {
+            background-color: #e67e22;
+            color: white;
+        }
+
         #status-message {
             padding: 10px;
             border-radius: 5px;
             font-weight: bold;
             text-align: center;
             display: none;
-            /* Caché par défaut */
         }
 
-        /* FENÊTRE MODALE (Prompt) */
-        #custom-prompt {
+        /* --- MODALES --- */
+        .modal-overlay {
             display: none;
-            /* Caché par défaut */
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 3000;
             align-items: center;
-        }
-
-        #custom-prompt.visible {
-            display: flex;
+            justify-content: center;
         }
 
         .modal-content {
             background: white;
-            padding: 20px;
+            padding: 25px;
             border-radius: 8px;
-            width: 350px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            width: 450px;
+            max-height: 90vh;
+            overflow-y: auto;
+            color: #333;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Message d'erreur spécifique à la modale */
+        #new-page-error-msg {
+            display: none;
+            color: #e74c3c;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #fadbd8;
+            border-radius: 4px;
+            border: 1px solid #e74c3c;
         }
     </style>
 </head>
@@ -191,51 +201,129 @@
         <div class="sidebar-header">
             <h3>CMS Zola</h3>
         </div>
-
         <div class="sidebar-actions">
             <button class="btn btn-primary" onclick="choisirDossier()">📂 Ouvrir Dossier</button>
-            <button class="btn btn-purple" onclick="genererSite()">🔨 Générer le site (Export)</button>
+            <button class="btn btn-success" onclick="creerNouvellePage()">➕ Nouvelle page</button>
+            <button class="btn btn-purple" onclick="genererSite()">🔨 Générer (Export)</button>
+            <button class="btn btn-orange" onclick="openFtpModal()">📡 Déployer via FTP</button>
+            <button class="btn btn-dark" onclick="configurerGitHub()">⚙️ GitHub Pages</button>
         </div>
 
-        <div id="file-list">
+        <div id="file-list"></div>
+
+        <div style="padding: 10px; border-top: 1px solid #34495e;">
+            <h4 style="margin: 0 0 10px 0; font-size: 12px; color: #bdc3c7;">VERSIONS (GIT)</h4>
+            <button class="btn btn-primary" style="width: 100%; font-size: 12px; margin-bottom: 5px;"
+                onclick="nouvelleSauvegarde()">💾 Sauvegarder (Commit)</button>
+            <button class="btn btn-success" style="width: 100%; font-size: 12px; margin-bottom: 5px;"
+                onclick="pushSite()">☁️ Publier (Push)</button>
+            <button id="btn-retour-present" class="btn btn-warning" style="width: 100%; font-size: 12px; display:none;"
+                onclick="revenirAuPresent()">↩️ Retour au présent</button>
+            <div id="git-history"
+                style="font-size: 11px; max-height: 150px; overflow-y: auto; background: #1a252f; border: 1px solid #34495e; padding: 5px; margin-top: 5px;">
+            </div>
         </div>
     </div>
 
     <div id="editor">
-
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h2>Éditeur</h2>
-
             <div>
-                <button id="btn-launch" class="btn btn-warning" onclick="lancerZola()">▶️ Prévisualiser
-                    (Serveur)</button>
-                <button id="btn-stop" class="btn btn-danger" onclick="arreterZola()" style="display: none;">wq Arrêter
-                    le serveur</button>
+                <button id="btn-launch" class="btn btn-warning" onclick="lancerZola()">▶️ Prévisualiser</button>
+                <button id="btn-stop" class="btn btn-danger" onclick="arreterZola()" style="display: none;">⏹ Arrêter
+                    Zola</button>
             </div>
         </div>
 
         <div id="status-message"></div>
 
         <div id="form-container">
-            <p style="color: #666; font-style: italic;">Sélectionnez un fichier .md dans la liste pour commencer.</p>
+            <p style="color: #666; font-style: italic;">Sélectionnez un fichier .md pour commencer.</p>
         </div>
 
-        <button class="btn btn-success" onclick="sauvegarder()" style="width: 100%; padding: 15px; font-size: 1.1em;">
-            💾 Enregistrer les modifications
-        </button>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-danger" onclick="demanderSuppression()" style="flex: 1;">
+                Supprimer
+            </button>
+
+            <button class="btn btn-success" onclick="sauvegarder()" style="flex: 3;">
+                Enregistrer les modifications
+            </button>
+        </div>
     </div>
 
-    <div id="custom-prompt">
+    <div id="custom-prompt" class="modal-overlay">
         <div class="modal-content">
-            <h3 style="margin-top: 0;">Nom de l'export</h3>
-            <p>Entrez le nom du dossier de sortie :</p>
-
-            <input type="text" id="prompt-input" placeholder="ex: version-finale-1"
-                style="width: 100%; margin-bottom: 15px; padding: 10px;">
-
+            <h3>Nom de l'export</h3>
+            <input type="text" id="prompt-input" placeholder="ex: version-finale" style="margin-bottom: 15px;">
             <div style="text-align: right; display: flex; gap: 10px; justify-content: flex-end;">
-                <button onclick="fermerPrompt()" class="btn" style="background: #ccc;">Annuler</button>
+                <button onclick="fermerPrompt()" class="btn">Annuler</button>
                 <button onclick="confirmerGeneration()" class="btn btn-success">Valider</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="ftp-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>🚀 Déploiement FTP</h3>
+            <div class="form-group"><label>Hôte</label><input type="text" id="ftp-host"></div>
+            <div style="display: flex; gap: 10px;">
+                <div class="form-group" style="flex: 1;"><label>User</label><input type="text" id="ftp-user"></div>
+                <div class="form-group" style="width: 80px;"><label>Port</label><input type="number" id="ftp-port"
+                        value="21"></div>
+            </div>
+            <div class="form-group"><label>Mot de passe</label><input type="password" id="ftp-pass"></div>
+            <div class="form-group"><label>Dossier distant</label><input type="text" id="ftp-root" value="/"></div>
+            <div style="text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
+                <button onclick="closeFtpModal()" class="btn">Annuler</button>
+                <button onclick="lancerDeploiement()" class="btn btn-success">Déployer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-container" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="margin-top:0">➕ Nouvelle page</h3>
+
+            <div id="new-page-error-msg"></div>
+
+            <div class="form-group">
+                <label>Nom du fichier (Slug)</label>
+                <input type="text" id="new-page-filename" placeholder="mon-article" oninput="updateTemplateFields()">
+            </div>
+
+            <div class="form-group">
+                <label>Dossier</label>
+                <select id="new-page-folder"></select>
+            </div>
+
+            <div class="form-group">
+                <label>Template</label>
+                <select id="new-page-template" onchange="updateTemplateFields()"></select>
+            </div>
+
+            <div id="template-fields-container"
+                style="background:#f8f9fa; padding:10px; border-radius:4px; border:1px solid #ddd;">
+            </div>
+
+            <div style="text-align: right; margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button onclick="fermerModalePage()" class="btn">Annuler</button>
+                <button onclick="validerCreationPage()" class="btn btn-success">Créer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-delete-confirm" class="modal-overlay">
+        <div class="modal-content" style="border-top: 5px solid #e74c3c;">
+            <h3 style="margin-top:0; color: #c0392b;">⚠️ Confirmation de suppression</h3>
+            <p>Êtes-vous sûr de vouloir supprimer définitivement ce fichier ?</p>
+            <p id="delete-filename-display"
+                style="font-weight:bold; background:#eee; padding:5px; border-radius:4px; text-align:center;"></p>
+            <p style="font-size: 0.9em; color: #666;">Cette action est irréversible.</p>
+
+            <div style="text-align: right; display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                <button onclick="fermerModalSuppression()" class="btn">Annuler</button>
+                <button onclick="confirmerSuppression()" class="btn btn-danger">Oui, supprimer</button>
             </div>
         </div>
     </div>

@@ -16,9 +16,11 @@
   "type": "commonjs",
   "dependencies": {
     "@iarna/toml": "^2.2.5",
+    "basic-ftp": "^5.1.0",
     "electron-reload": "^2.0.0-alpha.1",
     "electron-squirrel-startup": "^1.0.1",
     "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.1",
     "remark-parse": "^11.0.0",
     "remark-stringify": "^11.0.0",
     "unified": "^11.0.5"

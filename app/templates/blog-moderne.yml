@@ -1,0 +1,30 @@
+id: blog-moderne
+label: blog-moderne
+description: >
+  Auto-généré.
+fields:
+
+  - name: title
+    label: Title
+    type: text
+    required: false
+
+  - name: date
+    label: Date
+    type: date
+    required: false
+
+  - name: extra.author
+    label: Author
+    type: text
+    required: false
+
+  - name: extra.hero_image
+    label: Hero Image
+    type: text
+    required: false
+
+  - name: content
+    label: Content
+    type: textarea
+    required: false

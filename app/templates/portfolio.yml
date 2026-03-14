@@ -1,0 +1,33 @@
+id: portfolio
+label: Portfolio Projet
+
+description: >
+  Page de présentation d’un projet avec image et description.
+
+fields:
+
+  - name: title
+    label: Nom du projet
+    type: text
+    required: true
+
+  - name: date
+    label: Date
+    type: date
+    required: false
+
+  - name: extra.project_image
+    label: Image du projet
+    type: text
+    required: false
+    help: Chemin ou URL de l'image
+
+  - name: extra.github_link
+    label: Lien GitHub
+    type: text
+    required: false
+
+  - name: extra.demo_link
+    label: Lien Démo
+    type: text
+    required: false

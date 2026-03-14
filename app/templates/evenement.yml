@@ -1,0 +1,37 @@
+id: evenement
+label: Événement
+
+description: >
+  Page dédiée à un événement avec date, lieu et inscription.
+
+fields:
+
+  - name: title
+    label: Nom de l'événement
+    type: text
+    required: true
+
+  - name: date
+    label: Date de l'événement
+    type: date
+    required: true
+
+  - name: extra.location
+    label: Lieu
+    type: text
+    required: false
+
+  - name: extra.event_image
+    label: Image de l'événement
+    type: text
+    required: false
+
+  - name: extra.registration_link
+    label: Lien d'inscription
+    type: text
+    required: false
+
+  - name: extra.price
+    label: Prix
+    type: text
+    required: false
