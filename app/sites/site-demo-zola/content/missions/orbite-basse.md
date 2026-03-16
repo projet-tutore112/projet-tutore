@@ -5,6 +5,7 @@ template: page.html
 extra:
   cover_image: /images/ISS_ULF3_STS-129.jpg
   status: Urgent
+  in_carousel: true
 ---
 ## Protocole de sortie extravéhiculaire
 

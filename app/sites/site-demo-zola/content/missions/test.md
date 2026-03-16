@@ -5,7 +5,7 @@ template = "page.html"
 description = "AAAAAAAAAAAAA"
 
 [extra]
-cover_image = ""
+cover_image = "/images/perseverance-cheyava-titre-1170x678.jpeg"
 +++
 # Test
 

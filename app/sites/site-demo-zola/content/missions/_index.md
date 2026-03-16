@@ -1,7 +1,7 @@
 +++
-title = "Journal de Bord"
+title = "Nos Missions"
 template = "index.html"
-sort_by = "date"
-insert_anchor_links = "left"
+page_template = "page.html"
 +++
-Retrouvez ici l'ensemble des rapports de missions et les analyses de données martiennes.
+
+Explorez les missions passées, présentes et futures.
