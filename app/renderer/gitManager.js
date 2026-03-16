@@ -64,7 +64,10 @@ module.exports = {
 
     // 2. CRÉER UN COMMIT (Sauvegarde locale)
     nouvelleSauvegarde: async function(projectDir, afficherMessageCallback, refreshCallback) {
-        if (!projectDir) return alert("Aucun projet chargé.");
+        if (!projectDir) {
+            if (afficherMessageCallback) afficherMessageCallback("Aucun projet chargé.", true);
+            return;
+        }
 
         // On ouvre la modale
         document.getElementById('custom-prompt').classList.add('visible');
@@ -86,7 +89,10 @@ module.exports = {
 
         btnValider.onclick = async () => {
             const message = promptInput.value;
-            if (!message) return alert("Message obligatoire !");
+            if (!message) {
+                afficherMessageCallback("Message obligatoire !", true);
+                return;
+            }
             
             document.getElementById('custom-prompt').classList.remove('visible');
             promptInput.value = '';
@@ -100,14 +106,17 @@ module.exports = {
                 afficherMessageCallback("✅ Version sauvegardée !", false);
                 refreshCallback(); 
             } catch (e) {
-                alert("Erreur sauvegarde : " + e.message);
+                afficherMessageCallback("Erreur sauvegarde : " + e.message, true);
             }
         };
     },
 
     // 3. CHANGER DE VERSION (Checkout)
     voirVersion: async function(hash, projectDir, callbacks) {
-        const confirm = window.confirm(`Voulez-vous visualiser la version ${hash} ?\n\n⚠️ L'application passera en mode "Lecture Seule".`);
+        const confirm = window.demanderConfirmation 
+            ? await window.demanderConfirmation("Visualiser une version", `Voulez-vous visualiser la version ${hash} ?\n\n⚠️ L'application passera en mode "Lecture Seule".`)
+            : true; 
+            
         if (confirm) {
             try {
                 await execGit(`git checkout ${hash}`, projectDir);
@@ -116,7 +125,7 @@ module.exports = {
                 if (btnRetour) btnRetour.style.display = 'block';
                 callbacks.reloadUI();
             } catch (e) {
-                alert("Impossible de changer de version : " + e);
+                callbacks.afficherMessage("Impossible de changer de version : " + e, true);
             }
         }
     },
@@ -137,7 +146,7 @@ module.exports = {
                 if (btnRetour) btnRetour.style.display = 'none';
                 callbacks.reloadUI();
             } catch (err) {
-                alert("Erreur retour : " + err);
+                callbacks.afficherMessage("Erreur retour : " + err, true);
             }
         }
     },
@@ -146,7 +155,10 @@ module.exports = {
     pushToRemote: async function(projectDir, afficherMessageCallback) {
         if (!projectDir) return;
 
-        const confirm = window.confirm("Voulez-vous vraiment envoyer le site en ligne ?\n\nCela mettra à jour le site Web public.");
+        const confirm = window.demanderConfirmation 
+            ? await window.demanderConfirmation("Publication", "Voulez-vous vraiment envoyer le site en ligne ?\n\nCela mettra à jour le site Web public.")
+            : true;
+            
         if (!confirm) return;
 
         afficherMessageCallback("☁️ Envoi vers GitHub en cours...", false);
@@ -155,18 +167,21 @@ module.exports = {
             // Tente d'envoyer sur 'main'
             await execGit('git push -u origin main', projectDir);
             
-            afficherMessageCallback("✅ Site publié avec succès !", false);
-            alert("Félicitations ! Votre site est en cours de mise à jour sur GitHub.");
+            afficherMessageCallback("✅ Site publié avec succès ! Félicitations !", false);
+            if (window.afficherAlerte) window.afficherAlerte("Succès", "Félicitations ! Votre site est en cours de mise à jour sur GitHub.");
 
         } catch (e) {
             console.error(e);
             // Gestion erreur mot de passe
             if (e.message.includes("Authentication failed") || e.message.includes("could not read Username")) {
-                alert("Erreur d'authentification 🔒\n\nVotre ordinateur ne connaît pas vos identifiants GitHub.\nPour la première fois, faites un 'git push' manuellement dans un terminal.");
+                if (window.afficherAlerte) {
+                    window.afficherAlerte("Erreur d'authentification 🔒", "Votre ordinateur ne connaît pas vos identifiants GitHub.\nPour la première fois, faites un 'git push' manuellement dans un terminal.");
+                } else {
+                    afficherMessageCallback("Erreur d'authentification GitHub.", true);
+                }
             } else {
-                alert("Erreur lors de l'envoi : " + e.message);
+                afficherMessageCallback("Erreur lors de l'envoi : " + e.message, true);
             }
-            afficherMessageCallback("❌ Erreur lors de la publication.", true);
         }
     }
 };

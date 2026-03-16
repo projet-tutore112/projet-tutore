@@ -41,6 +41,56 @@ window.addEventListener('click', () => {
 });
 
 // ============================================================
+// 0. MODALES CUSTOM (Remplace alert et confirm)
+// ============================================================
+
+function afficherAlerte(titre, message) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999;';
+    const box = document.createElement('div');
+    box.style.cssText = 'background: white; padding: 25px; border-radius: 8px; width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); font-family: sans-serif;';
+    box.innerHTML = `
+        <h3 style="margin-top: 0; color: #2c3e50;">${titre}</h3>
+        <p style="white-space: pre-wrap; color: #333; line-height: 1.5; font-size: 14px;">${message}</p>
+        <div style="text-align: right; margin-top: 20px;">
+            <button id="btn-alert-ok" style="background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">OK</button>
+        </div>
+    `;
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    box.querySelector('#btn-alert-ok').onclick = () => document.body.removeChild(overlay);
+}
+
+function demanderConfirmation(titre, message) {
+    return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999;';
+        const box = document.createElement('div');
+        box.style.cssText = 'background: white; padding: 25px; border-radius: 8px; width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); font-family: sans-serif;';
+        box.innerHTML = `
+            <h3 style="margin-top: 0; color: #2c3e50;">${titre}</h3>
+            <p style="white-space: pre-wrap; color: #333; line-height: 1.5; font-size: 14px;">${message}</p>
+            <div style="text-align: right; margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button id="btn-confirm-cancel" style="background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">Annuler</button>
+                <button id="btn-confirm-ok" style="background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">Confirmer</button>
+            </div>
+        `;
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+        
+        box.querySelector('#btn-confirm-cancel').onclick = () => {
+            document.body.removeChild(overlay);
+            resolve(false);
+        };
+        box.querySelector('#btn-confirm-ok').onclick = () => {
+            document.body.removeChild(overlay);
+            resolve(true);
+        };
+    });
+}
+
+
+// ============================================================
 // 1. GESTION PROJET
 // ============================================================
 
@@ -506,7 +556,7 @@ const templateEngine = require('./templateEngine');
 const APP_TEMPLATES_DIR = path.join(__dirname, '../templates'); 
 
 window.creerNouvellePage = () => {
-    if (!currentProjectDir) return alert("Veuillez charger un projet.");
+    if (!currentProjectDir) return afficherMessage("Veuillez charger un projet.", true);
 
     // 1. Lister les dossiers du projet (content)
     const contentPath = path.join(currentProjectDir, 'content');
@@ -820,7 +870,7 @@ async function lancerDeploiement() {
     };
 
     if (!config.host || !config.user || !config.password) {
-        alert("Veuillez remplir tous les champs FTP.");
+        afficherAlerte("Erreur", "Veuillez remplir tous les champs FTP.");
         return;
     }
 
@@ -846,7 +896,7 @@ async function lancerDeploiement() {
             await ftpManager.deploy(config, tempBuildDir, afficherMessage);
 
             // Succès !
-            alert("Site mis à ligne avec succès ! 🌍");
+            afficherAlerte("Succès", "Site mis à ligne avec succès ! 🌍");
 
             // Nettoyage : on supprime le dossier temporaire (optionnel)
             try { fs.rmSync(tempBuildDir, { recursive: true, force: true }); } catch (e) { }
@@ -861,7 +911,6 @@ async function lancerDeploiement() {
 // ============================================================
 // 9. EXPOSITION GLOBALE (Mise à jour)
 // ============================================================
-// ... vos autres exports ...
 window.openFtpModal = openFtpModal;
 window.closeFtpModal = closeFtpModal;
 window.lancerDeploiement = lancerDeploiement;
@@ -870,7 +919,7 @@ window.lancerDeploiement = lancerDeploiement;
 // 10. GESTION GITHUB PAGES
 // ============================================================
 
-function configurerGitHub() {
+async function configurerGitHub() {
     if (!currentProjectDir) {
         afficherMessage("⚠️ Chargez un projet d'abord.", true);
         return;
@@ -878,7 +927,7 @@ function configurerGitHub() {
 
     // Vérification si déjà fait
     if (githubManager.isConfigured(currentProjectDir)) {
-        const reponse = confirm("GitHub Pages semble déjà configuré (fichier zola.yml détecté).\nVoulez-vous le réécrire ?");
+        const reponse = await demanderConfirmation("Configuration existante", "GitHub Pages semble déjà configuré (fichier zola.yml détecté).\nVoulez-vous le réécrire ?");
         if (!reponse) return;
     }
 
@@ -887,19 +936,10 @@ function configurerGitHub() {
 
     if (success) {
         // --- LE RAPPEL IMPORTANT EST ICI ---
-        alert(`✅ Fichier de configuration créé avec succès !
-
-⚠️ ÉTAPE CRUCIALE SUR GITHUB.COM :
-Pour que le site fonctionne, vous devez activer "GitHub Actions" sur le site web :
-
-1. Allez sur votre dépôt GitHub > onglet 'Settings'.
-2. Cliquez sur 'Pages' (menu de gauche).
-3. Dans la section 'Build and deployment', changez la Source.
-   👉 Sélectionnez : "GitHub Actions".
-
-Une fois cela fait :
-1. Revenez ici et cliquez sur '💾 Sauvegarder l'état'.
-2. Cliquez sur '☁️ Publier sur Internet'.`);
+        afficherAlerte(
+            "Configuration terminée !", 
+            `✅ Fichier de configuration créé avec succès !\n\n⚠️ ÉTAPE CRUCIALE SUR GITHUB.COM :\nPour que le site fonctionne, vous devez activer "GitHub Actions" sur le site web :\n\n1. Allez sur votre dépôt GitHub > onglet 'Settings'.\n2. Cliquez sur 'Pages' (menu de gauche).\n3. Dans la section 'Build and deployment', changez la Source.\n   👉 Sélectionnez : "GitHub Actions".\n\nUne fois cela fait :\n1. Revenez ici et cliquez sur '💾 Sauvegarder l'état'.\n2. Cliquez sur '☁️ Publier sur Internet'.`
+        );
 
         // On lance la sauvegarde automatiquement pour gagner du temps
         nouvelleSauvegarde();
@@ -961,6 +1001,9 @@ function confirmerSuppression() {
 // 12. EXPORTS GLOBAUX
 // ============================================================
 
+window.afficherMessage = afficherMessage;
+window.afficherAlerte = afficherAlerte;
+window.demanderConfirmation = demanderConfirmation;
 window.choisirDossier = choisirDossier;
 window.sauvegarder = sauvegarder;
 window.lancerZola = lancerZola;
