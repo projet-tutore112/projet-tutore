@@ -183,5 +183,39 @@ module.exports = {
                 afficherMessageCallback("Erreur lors de l'envoi : " + e.message, true);
             }
         }
+    },
+
+
+
+// 6. RÉCUPÉRER DEPUIS INTERNET (Git Pull)
+    pullFromRemote: async function(projectDir, afficherMessageCallback, reloadUICallback) {
+        if (!projectDir) return;
+
+        afficherMessageCallback("Récupération depuis GitHub en cours", false);
+
+        try {
+            // Tente de récupérer depuis 'main'
+            await execGit('git pull origin main', projectDir);
+            
+            afficherMessageCallback("✅ Site synchronisé avec succès !", false);
+            if (window.afficherAlerte) window.afficherAlerte("Succès", "Votre projet a bien été mis à jour avec la version en ligne.");
+            
+            // On recharge l'interface pour afficher les éventuels nouveaux fichiers
+            if (reloadUICallback) reloadUICallback();
+
+        } catch (e) {
+            console.error(e);
+            // Gestion des conflits si on a modifié le même fichier en ligne et localement
+            if (e.message.includes("conflict") || e.message.includes("Resolve all conflicts")) {
+                if (window.afficherAlerte) {
+                    window.afficherAlerte("Conflit de modification ⚠️", "Vous avez modifié des fichiers localement ET en ligne en même temps. Impossible de synchroniser automatiquement.");
+                }
+            } else {
+                if (window.afficherAlerte) {
+                    window.afficherAlerte("Erreur de synchronisation", "Erreur : " + e.message);
+                }
+            }
+            afficherMessageCallback("❌ Erreur lors du Pull.", true);
+        }
     }
 };

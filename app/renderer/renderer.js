@@ -537,6 +537,14 @@ function revenirAuPresent() {
     });
 }
 
+function pullSite() {
+    gitManager.pullFromRemote(currentProjectDir, afficherMessage, () => {
+        chargerListeFichiers();
+        if (currentFilePath) ouvrirFichier(currentFilePath);
+        gitManager.chargerHistorique(currentProjectDir, (h) => voirVersionRelais(h));
+    });
+}
+
 function voirVersionRelais(hash) {
     gitManager.voirVersion(hash, currentProjectDir, {
         afficherMessage: afficherMessage,
