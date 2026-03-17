@@ -470,12 +470,15 @@ function sauvegarder() {
     if (!input) return;
 
     let val;
-    if (input.type === "checkbox") val = input.checked;
-    else if (input.value.includes(",") && item.key !== "title") {
-      val = input.value.split(",").map((s) => s.trim());
-    } else {
-      val = input.value.trim();
-    }
+        if (input.type === 'checkbox') {
+            val = input.checked;
+        } 
+        else if (input.value.includes(',') && ['taxonomies', 'aliases', 'tags', 'categories'].includes(item.key.toLowerCase())) {
+            val = input.value.split(',').map(s => s.trim());
+        } 
+        else {
+            val = input.value.trim();
+        }
 
     if (item.context === "extra") {
       if (!newConfig.extra) newConfig.extra = {};
