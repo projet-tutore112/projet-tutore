@@ -1149,3 +1149,4 @@ window.confirmerSuppression = confirmerSuppression;
 window.getCurrentProjectDir = () => currentProjectDir;
 window.chargerListeFichiers = chargerListeFichiers;
 window.ouvrirFichier = ouvrirFichier;
+window.pullSite = pullSite;
