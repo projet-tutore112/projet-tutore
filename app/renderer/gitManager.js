@@ -217,5 +217,30 @@ module.exports = {
             }
             afficherMessageCallback("❌ Erreur lors du Pull.", true);
         }
+    },
+
+// 7. VÉRIFIER LES MISES À JOUR (Fetch + Status)
+    verifierMiseAJour: async function(projectDir, promptPullCallback) {
+        if (!projectDir) return;
+        
+        const isGit = fs.existsSync(path.join(projectDir, '.git'));
+        if (!isGit) return; // Si ce n'est pas un projet Git, on ne fait rien
+
+        try {
+            // 1. On récupère les infos du serveur (sans modifier les fichiers locaux)
+            await execGit('git fetch', projectDir);
+            
+            // 2. On lit le statut actuel
+            const status = await execGit('git status -uno', projectDir);
+            
+            // 3. On cherche les mots-clés indiquant qu'on est en retard par rapport au serveur
+            if (status.includes('Your branch is behind') || status.includes('Votre branche est en retard') || status.includes('have diverged')) {
+                promptPullCallback();
+            }
+        } catch (e) {
+            // S'il n'y a pas internet ou pas de dépôt distant configuré, on ignore silencieusement
+            console.warn("Impossible de vérifier les mises à jour en ligne :", e.message);
+        }
     }
 };
+

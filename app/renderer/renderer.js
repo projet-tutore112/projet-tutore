@@ -102,21 +102,35 @@ function demanderConfirmation(titre, message) {
 // ============================================================
 
 async function choisirDossier() {
-  const cheminDossier = await ipcRenderer.invoke("dialog:openDirectory");
-  if (cheminDossier) {
-    currentProjectDir = cheminDossier;
-    chargerListeFichiers();
+    const cheminDossier = await ipcRenderer.invoke('dialog:openDirectory');
+    if (cheminDossier) {
+        currentProjectDir = cheminDossier;
+        chargerListeFichiers();
 
-    // Init Git
-    gitManager.chargerHistorique(currentProjectDir, (hash) => {
-      voirVersionRelais(hash);
-    });
+        // Init Git
+        gitManager.chargerHistorique(currentProjectDir, (hash) => {
+            voirVersionRelais(hash);
+        });
 
-    const btn = document.querySelector(".sidebar-actions .btn-primary");
-    if (btn) btn.innerText = "📂 " + path.basename(cheminDossier);
+        const btn = document.querySelector('.sidebar-actions .btn-primary');
+        if (btn) btn.innerText = "📂 " + path.basename(cheminDossier);
 
-    afficherMessage("Dossier chargé avec succès !", false);
-  }
+        afficherMessage("Dossier chargé avec succès !", false);
+
+        // NOUVEAU : Vérification des mises à jour en arrière-plan
+        gitManager.verifierMiseAJour(currentProjectDir, async () => {
+            // Cette fonction s'exécute uniquement si le site est en retard
+            const reponse = await demanderConfirmation(
+                "Mise à jour disponible ⬇️", 
+                "Une version plus récente de ce site existe sur Internet (GitHub).\n\nVoulez-vous la récupérer maintenant pour être à jour et éviter les conflits ?"
+            );
+            
+            if (reponse) {
+                // Si l'utilisateur dit OUI, on lance le Pull
+                pullSite();
+            }
+        });
+    }
 }
 
 function chargerListeFichiers() {
