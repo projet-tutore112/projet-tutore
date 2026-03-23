@@ -11,6 +11,7 @@ const validators = require("./validators");
 const gitManager = require("./gitManager");
 const ftpManager = require("./ftpManager");
 const githubManager = require("./githubManager");
+const netlifyManager = require('./netlifyManager');
 
 // Imports des modules de la feature "Création de page"
 const creerNouvellePageUI = require("./uiActions");
@@ -1137,8 +1138,76 @@ function confirmerSuppression() {
   }
 }
 
+
 // ============================================================
-// 12. EXPORTS GLOBAUX
+// 12. GESTION NETLIFY
+// ============================================================
+
+function openNetlifyModal() {
+    if (!currentProjectDir) {
+        afficherMessage("⚠️ Veuillez charger un projet d'abord.", true);
+        return;
+    }
+
+    // Pré-remplir si l'utilisateur l'a déjà fait avant
+    const config = netlifyManager.loadConfig(currentProjectDir);
+    if (config) {
+        document.getElementById('netlify-site-id').value = config.siteId || '';
+        document.getElementById('netlify-token').value = config.token || '';
+    }
+
+    document.getElementById('netlify-modal').style.display = 'flex';
+}
+
+function closeNetlifyModal() {
+    document.getElementById('netlify-modal').style.display = 'none';
+}
+
+async function lancerDeploiementNetlify() {
+    const config = {
+        siteId: document.getElementById('netlify-site-id').value,
+        token: document.getElementById('netlify-token').value
+    };
+
+    if (!config.siteId || !config.token) {
+        afficherAlerte("Erreur", "Veuillez remplir le nom du site et le Token Netlify.");
+        return;
+    }
+
+    closeNetlifyModal();
+    afficherMessage("⏳ Génération du site avant envoi Netlify...", false);
+
+    // On génère le site dans un dossier temporaire caché
+    const tempBuildDir = path.join(currentProjectDir, '_temp_netlify_deploy');
+    
+    // On sauvegarde la config pour la prochaine fois
+    netlifyManager.saveConfig(currentProjectDir, config);
+
+    // Étape 1 : Construction du site par Zola
+    zolaManager.buildSite(currentProjectDir, tempBuildDir, async (err, stderr) => {
+        if (err) {
+            afficherMessage(`❌ Erreur Build : ${stderr}`, true);
+            return;
+        }
+
+        // Étape 2 : Envoi au serveur Netlify
+        try {
+            await netlifyManager.deploy(config, tempBuildDir, afficherMessage);
+            
+            // On affiche le succès et on prévient du léger délai
+            afficherAlerte("🚀 Déploiement Succès !", "Votre site a été envoyé à Netlify.\n\nIl sera accessible en ligne d'ici quelques secondes à l'adresse :\nhttps://" + config.siteId.replace('.netlify.app', '') + ".netlify.app");
+            
+            // Nettoyage : On supprime le dossier compilé temporaire
+            try { fs.rmSync(tempBuildDir, { recursive: true, force: true }); } catch (e) { }
+
+        } catch (error) {
+            // L'erreur est déjà traitée dans netlifyManager
+        }
+    });
+}
+
+// ============================================================
+// 13. EXPORTS GLOBAUX
 // ============================================================
 
 window.afficherMessage = afficherMessage;
@@ -1164,3 +1233,6 @@ window.getCurrentProjectDir = () => currentProjectDir;
 window.chargerListeFichiers = chargerListeFichiers;
 window.ouvrirFichier = ouvrirFichier;
 window.pullSite = pullSite;
+window.openNetlifyModal = openNetlifyModal;
+window.closeNetlifyModal = closeNetlifyModal;
+window.lancerDeploiementNetlify = lancerDeploiementNetlify;
