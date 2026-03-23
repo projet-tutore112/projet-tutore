@@ -6,6 +6,11 @@ template: "page.html"
 
 <p class="lead">L'application est une solution de bureau (Desktop) développée avec <strong>Electron.js</strong>. Elle permet de piloter le moteur Zola localement et d'automatiser des tâches complexes (création de pages, versioning, déploiement) via une interface modulaire.</p>
 
+
+<div>
+        <img src="/projet-tutore/images/zolashema.png" alt="Illustration du contexte">
+</div>
+
 <hr class="spacer">
 
 <h2>1. Architecture Modulaire & Intelligence</h2>
