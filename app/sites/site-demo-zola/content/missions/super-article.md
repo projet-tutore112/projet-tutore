@@ -9,6 +9,7 @@ extra:
   cover_image: /images/perseverance-cheyava-titre-1170x678.jpeg
   category: Exploration
   status: En cours
+  in_carousel: true
 ---
 ## Analyse de l'échantillon 01
 

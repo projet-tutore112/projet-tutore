@@ -6,7 +6,7 @@ const templateEngine = require('./templateEngine');
 module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile) {
 
     if (!projectDir) {
-        alert("⚠️ Charge un projet avant de créer une page");
+        if (window.afficherMessage) window.afficherMessage("⚠️ Charge un projet avant de créer une page", true);
         return;
     }
 

@@ -64,7 +64,10 @@ module.exports = {
 
     // 2. CRÉER UN COMMIT (Sauvegarde locale)
     nouvelleSauvegarde: async function(projectDir, afficherMessageCallback, refreshCallback) {
-        if (!projectDir) return alert("Aucun projet chargé.");
+        if (!projectDir) {
+            if (afficherMessageCallback) afficherMessageCallback("Aucun projet chargé.", true);
+            return;
+        }
 
         // On ouvre la modale
         document.getElementById('custom-prompt').classList.add('visible');
@@ -86,7 +89,10 @@ module.exports = {
 
         btnValider.onclick = async () => {
             const message = promptInput.value;
-            if (!message) return alert("Message obligatoire !");
+            if (!message) {
+                afficherMessageCallback("Message obligatoire !", true);
+                return;
+            }
             
             document.getElementById('custom-prompt').classList.remove('visible');
             promptInput.value = '';
@@ -100,14 +106,17 @@ module.exports = {
                 afficherMessageCallback("✅ Version sauvegardée !", false);
                 refreshCallback(); 
             } catch (e) {
-                alert("Erreur sauvegarde : " + e.message);
+                afficherMessageCallback("Erreur sauvegarde : " + e.message, true);
             }
         };
     },
 
     // 3. CHANGER DE VERSION (Checkout)
     voirVersion: async function(hash, projectDir, callbacks) {
-        const confirm = window.confirm(`Voulez-vous visualiser la version ${hash} ?\n\n⚠️ L'application passera en mode "Lecture Seule".`);
+        const confirm = window.demanderConfirmation 
+            ? await window.demanderConfirmation("Visualiser une version", `Voulez-vous visualiser la version ${hash} ?\n\n⚠️ L'application passera en mode "Lecture Seule".`)
+            : true; 
+            
         if (confirm) {
             try {
                 await execGit(`git checkout ${hash}`, projectDir);
@@ -116,7 +125,7 @@ module.exports = {
                 if (btnRetour) btnRetour.style.display = 'block';
                 callbacks.reloadUI();
             } catch (e) {
-                alert("Impossible de changer de version : " + e);
+                callbacks.afficherMessage("Impossible de changer de version : " + e, true);
             }
         }
     },
@@ -137,7 +146,7 @@ module.exports = {
                 if (btnRetour) btnRetour.style.display = 'none';
                 callbacks.reloadUI();
             } catch (err) {
-                alert("Erreur retour : " + err);
+                callbacks.afficherMessage("Erreur retour : " + err, true);
             }
         }
     },
@@ -146,7 +155,10 @@ module.exports = {
     pushToRemote: async function(projectDir, afficherMessageCallback) {
         if (!projectDir) return;
 
-        const confirm = window.confirm("Voulez-vous vraiment envoyer le site en ligne ?\n\nCela mettra à jour le site Web public.");
+        const confirm = window.demanderConfirmation 
+            ? await window.demanderConfirmation("Publication", "Voulez-vous vraiment envoyer le site en ligne ?\n\nCela mettra à jour le site Web public.")
+            : true;
+            
         if (!confirm) return;
 
         afficherMessageCallback("☁️ Envoi vers GitHub en cours...", false);
@@ -155,18 +167,80 @@ module.exports = {
             // Tente d'envoyer sur 'main'
             await execGit('git push -u origin main', projectDir);
             
-            afficherMessageCallback("✅ Site publié avec succès !", false);
-            alert("Félicitations ! Votre site est en cours de mise à jour sur GitHub.");
+            afficherMessageCallback("✅ Site publié avec succès ! Félicitations !", false);
+            if (window.afficherAlerte) window.afficherAlerte("Succès", "Félicitations ! Votre site est en cours de mise à jour sur GitHub.");
 
         } catch (e) {
             console.error(e);
             // Gestion erreur mot de passe
             if (e.message.includes("Authentication failed") || e.message.includes("could not read Username")) {
-                alert("Erreur d'authentification 🔒\n\nVotre ordinateur ne connaît pas vos identifiants GitHub.\nPour la première fois, faites un 'git push' manuellement dans un terminal.");
+                if (window.afficherAlerte) {
+                    window.afficherAlerte("Erreur d'authentification 🔒", "Votre ordinateur ne connaît pas vos identifiants GitHub.\nPour la première fois, faites un 'git push' manuellement dans un terminal.");
+                } else {
+                    afficherMessageCallback("Erreur d'authentification GitHub.", true);
+                }
             } else {
-                alert("Erreur lors de l'envoi : " + e.message);
+                afficherMessageCallback("Erreur lors de l'envoi : " + e.message, true);
             }
-            afficherMessageCallback("❌ Erreur lors de la publication.", true);
+        }
+    },
+
+
+
+// 6. RÉCUPÉRER DEPUIS INTERNET (Git Pull)
+    pullFromRemote: async function(projectDir, afficherMessageCallback, reloadUICallback) {
+        if (!projectDir) return;
+
+        afficherMessageCallback("Récupération depuis GitHub en cours", false);
+
+        try {
+            // Tente de récupérer depuis 'main'
+            await execGit('git pull origin main', projectDir);
+            
+            afficherMessageCallback("✅ Site synchronisé avec succès !", false);
+            if (window.afficherAlerte) window.afficherAlerte("Succès", "Votre projet a bien été mis à jour avec la version en ligne.");
+            
+            // On recharge l'interface pour afficher les éventuels nouveaux fichiers
+            if (reloadUICallback) reloadUICallback();
+
+        } catch (e) {
+            console.error(e);
+            // Gestion des conflits si on a modifié le même fichier en ligne et localement
+            if (e.message.includes("conflict") || e.message.includes("Resolve all conflicts")) {
+                if (window.afficherAlerte) {
+                    window.afficherAlerte("Conflit de modification ⚠️", "Vous avez modifié des fichiers localement ET en ligne en même temps. Impossible de synchroniser automatiquement.");
+                }
+            } else {
+                if (window.afficherAlerte) {
+                    window.afficherAlerte("Erreur de synchronisation", "Erreur : " + e.message);
+                }
+            }
+            afficherMessageCallback("❌ Erreur lors du Pull.", true);
+        }
+    },
+
+// 7. VÉRIFIER LES MISES À JOUR (Fetch + Status)
+    verifierMiseAJour: async function(projectDir, promptPullCallback) {
+        if (!projectDir) return;
+        
+        const isGit = fs.existsSync(path.join(projectDir, '.git'));
+        if (!isGit) return; // Si ce n'est pas un projet Git, on ne fait rien
+
+        try {
+            // 1. On récupère les infos du serveur (sans modifier les fichiers locaux)
+            await execGit('git fetch', projectDir);
+            
+            // 2. On lit le statut actuel
+            const status = await execGit('git status -uno', projectDir);
+            
+            // 3. On cherche les mots-clés indiquant qu'on est en retard par rapport au serveur
+            if (status.includes('Your branch is behind') || status.includes('Votre branche est en retard') || status.includes('have diverged')) {
+                promptPullCallback();
+            }
+        } catch (e) {
+            // S'il n'y a pas internet ou pas de dépôt distant configuré, on ignore silencieusement
+            console.warn("Impossible de vérifier les mises à jour en ligne :", e.message);
         }
     }
 };
+

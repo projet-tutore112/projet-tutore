@@ -207,6 +207,7 @@
             <button class="btn btn-purple" onclick="genererSite()">🔨 Générer (Export)</button>
             <button class="btn btn-orange" onclick="openFtpModal()">📡 Déployer via FTP</button>
             <button class="btn btn-dark" onclick="configurerGitHub()">⚙️ GitHub Pages</button>
+            <button onclick="openNetlifyModal()" style="width:100%; padding:8px; margin-bottom:15px; cursor:pointer; background-color: #00c7b7; color: white; border: none; border-radius:4px; margin-top: 5px;">💠 Déployer sur Netlify</button>
         </div>
 
         <div id="file-list"></div>
@@ -217,6 +218,10 @@
                 onclick="nouvelleSauvegarde()">💾 Sauvegarder (Commit)</button>
             <button class="btn btn-success" style="width: 100%; font-size: 12px; margin-bottom: 5px;"
                 onclick="pushSite()">☁️ Publier (Push)</button>
+            <button onclick="pullSite()" 
+                style="width:100%; padding:8px; margin-bottom:5px; cursor:pointer; background-color: #f39c12; color: white; border: none; border-radius:4px; margin-top: 5px;">
+                ⬇️ Récupérer depuis Internet (Pull)
+            </button>
             <button id="btn-retour-present" class="btn btn-warning" style="width: 100%; font-size: 12px; display:none;"
                 onclick="revenirAuPresent()">↩️ Retour au présent</button>
             <div id="git-history"
@@ -324,6 +329,33 @@
             <div style="text-align: right; display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
                 <button onclick="fermerModalSuppression()" class="btn">Annuler</button>
                 <button onclick="confirmerSuppression()" class="btn btn-danger">Oui, supprimer</button>
+            </div>
+        </div>
+    </div>
+
+            <div id="netlify-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 25px; border-radius: 8px; width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); font-family: sans-serif;">
+            <h3 style="margin-top: 0; color: #2c3e50;">💠 Déploiement Netlify</h3>
+            
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 20px; font-size: 13px; color: #0d47a1; line-height: 1.5;">
+                <strong>Comment publier mon site ?</strong><br>
+                1. Allez sur <i>Netlify.com</i> et créez un site vide pour obtenir son <b>Nom</b> (ex: <i>mon-site.netlify.app</i>).<br>
+                2. Allez dans vos paramètres utilisateur (<i>User settings > Applications > Personal access tokens</i>) et générez un <b>Token</b> secret.
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 0.9em; font-weight: bold; color: #333;">Nom du site Netlify</label>
+                <input type="text" id="netlify-site-id" placeholder="ex: super-site.netlify.app" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="font-size: 0.9em; font-weight: bold; color: #333;">Token d'accès (Personal Access Token)</label>
+                <input type="password" id="netlify-token" placeholder="ex: nfp_xxxxxxxxx..." style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+            </div>
+
+            <div style="text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
+                <button onclick="closeNetlifyModal()" style="background: #95a5a6; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;">Annuler</button>
+                <button onclick="lancerDeploiementNetlify()" style="background: #00c7b7; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Déployer maintenant</button>
             </div>
         </div>
     </div>

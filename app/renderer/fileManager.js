@@ -65,7 +65,6 @@ function getFileTree(dirPath) {
                 currentTree[item] = { _files: [] };
                 walk(fullPath, currentTree[item]);
             } else if (item.endsWith('.md')) {
-                // On met les fichiers dans une clé spéciale _files
                 if (!currentTree._files) currentTree._files = [];
                 currentTree._files.push({
                     name: item,
