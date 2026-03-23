@@ -21,7 +21,7 @@ L'environnement martien présente des caractéristiques fascinantes. Voici un cl
 
 Débriefing complet de la phase d'entrée atmosphérique :
 
-<video controls src="/videos/video1.mp4" width="100%"></video>
+<video controls src="/videos/decollagefusee.mp4" width="100%"></video>
 
 > "Un petit pas pour un robot, un grand saut pour l'astrobiologie."
 
