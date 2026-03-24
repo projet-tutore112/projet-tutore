@@ -132,7 +132,7 @@
     {% if section_equipe and section_equipe.pages | length > 0 %}
       {% for p in section_equipe.pages %}
         <a href="{{ p.permalink }}" style="text-decoration: none; color: inherit; text-align: center; min-width: 150px;">
-          {% set avatar_img = p.extra.member_photo | default(value="/images/avatar.jpg") %}
+          {% set avatar_img = p.extra.cover_image | default(value="/images/avatar.jpg") %}
           <img src="{{ avatar_img }}" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px;">
           <h3 style="margin: 0; font-size: 1.1rem;">{{ p.title }}</h3>
           <span style="color: #e74c3c; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">{{ p.extra.role | default(value="Membre") }}</span>
