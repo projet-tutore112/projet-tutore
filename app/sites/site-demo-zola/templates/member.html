@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container" style="margin-top: 50px; display: flex; gap: 40px; align-items: flex-start;">
     <div style="flex: 1; max-width: 300px;">
-        <img src="{{ page.extra.member_photo | default(value='/images/avatar.jpg') }}" style="width: 100%; border-radius: 15px; box-shadow: var(--shadow);">
+        <img src="{{ page.extra.cover_image | default(value='/images/avatar.jpg') }}" style="width: 100%; border-radius: 15px; box-shadow: var(--shadow);">
     </div>
     <div style="flex: 2;">
         <span class="badge" style="position: static; margin-bottom: 10px; display: inline-block;">{{ page.extra.role }}</span>

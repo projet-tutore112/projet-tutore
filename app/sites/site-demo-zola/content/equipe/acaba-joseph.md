@@ -1,17 +1,15 @@
 +++
 title = "Joseph Acaba"
 template = "member.html"
-weight = 1
 
 [extra]
 role = "Spécialiste de Mission & Géologue"
 email = "j.acaba@agence-spatiale.gov"
-member_photo = "/images/acaba-joseph.jpg"
+cover_image = "/images/acaba-joseph.jpg"
 +++
-
 # Biographie
 
-Sélectionné en tant qu'astronaute en 2004, Joseph "Joe" Acaba est un vétéran de l'exploration spatiale avec plusieurs missions à son actif à bord de la Station Spatiale Internationale (ISS). 
+Sélectionné en tant qu'astronaute en 2004, Joseph "Joe" Acaba est un vétéran de l'exploration spatiale avec plusieurs missions à son actif à bord de la Station Spatiale Internationale (ISS).
 
 Avant de rejoindre le programme spatial, Joe a travaillé comme hydrogéologue et a consacré plusieurs années à enseigner les mathématiques et les sciences au collège et au lycée. Cette double casquette de scientifique et de pédagogue fait de lui un atout indispensable pour notre équipe.
 

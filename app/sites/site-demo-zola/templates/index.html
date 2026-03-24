@@ -17,7 +17,7 @@
         <article class="pro-card">
             <a href="{{ p.permalink }}">
                 <div class="card-thumb"
-                    style="background-image: url('{{ p.extra.member_photo | default(value='/images/placeholder.jpg') }}')">
+                    style="background-image: url('{{ p.extra.cover_image | default(value='/images/placeholder.jpg') }}')">
                     {% if p.extra.status %}
                     <span class="badge">{{ p.extra.status }}</span>
                     {% endif %}
