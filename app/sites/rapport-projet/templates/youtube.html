@@ -1,0 +1,9 @@
+<div {% if class %}class="{{class}}"{% endif %} style="text-align: center; margin: 20px 0;">
+    <iframe 
+        src="https://www.youtube-nocookie.com/embed/{{id}}{% if autoplay %}?autoplay=1{% endif %}" 
+        webkitallowfullscreen 
+        mozallowfullscreen 
+        allowfullscreen
+        style="width: 100%; aspect-ratio: 16/9; border: none; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+    </iframe>
+</div>
