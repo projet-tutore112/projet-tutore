@@ -11,6 +11,7 @@ extra:
   why_title: "Pourquoi ce projet ?"
   why_text: "Les générateurs de sites statiques sont performants mais exigent des compétences techniques. Notre mission : créer un CMS de bureau complet pour gérer Zola sans jamais toucher à la ligne de commande ni au code."
 
+  image: "projet-tutore/images/zolashema.png"
   features:
     - icon: "✏️"
       title: "Édition Riche"
