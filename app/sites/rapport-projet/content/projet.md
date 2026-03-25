@@ -10,10 +10,10 @@ date: 2026-02-02
         <h3>Un CMS de Bureau pour Sites Statiques Zola.</h3>
         <p>Notre but est de fournir une interface graphique (GUI) locale, packagée sous forme de logiciel installable, permettant de créer et gérer un site Zola existant <strong>sans aucune compétence en programmation</strong>.</p>
     </div>
-    <div>
-        <img src="/projet-tutore/images/code.jpg" alt="Illustration du contexte" class="shadow-img">
+    <div class="video-card">
+        <video src="/projet-tutore/videos/fonctionnementzola.mp4" controls class="shadow-img" style="max-width: 100%;"></video>    
     </div>
-</div>
+    </div>
 
 <hr class="spacer">
 
