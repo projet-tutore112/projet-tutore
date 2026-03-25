@@ -41,8 +41,13 @@ function arreterServeur() {
     processusZola = null;
 }
 
-function buildSite(projectDir, outputDir, callbackFin) {
-    const cmd = `${getZolaCommand()} build --output-dir "${outputDir}"`;
+function buildSite(projectDir, outputDir, callbackFin, baseUrl = null) {
+    let cmd = `${getZolaCommand()} build --output-dir "${outputDir}"`;
+    
+    if (baseUrl) {
+        cmd += ` --base-url "${baseUrl}"`;
+    }
+
     exec(cmd, { cwd: projectDir }, (error, stdout, stderr) => {
         callbackFin(error, stderr);
     });

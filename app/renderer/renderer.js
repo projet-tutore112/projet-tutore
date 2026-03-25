@@ -1216,7 +1216,6 @@ function openNetlifyModal() {
         return;
     }
 
-    // Pré-remplir si l'utilisateur l'a déjà fait avant
     const config = netlifyManager.loadConfig(currentProjectDir);
     if (config) {
         document.getElementById('netlify-site-id').value = config.siteId || '';
@@ -1244,38 +1243,31 @@ async function lancerDeploiementNetlify() {
     closeNetlifyModal();
     afficherMessage("⏳ Génération du site avant envoi Netlify...", false);
 
-    // On génère le site dans un dossier temporaire caché
     const tempBuildDir = path.join(currentProjectDir, '_temp_netlify_deploy');
     
-    // On sauvegarde la config pour la prochaine fois
     netlifyManager.saveConfig(currentProjectDir, config);
 
-    // Étape 1 : Construction du site par Zola
+    const nomNettoye = config.siteId.replace('.netlify.app', '');
+    const urlProduction = `https://${nomNettoye}.netlify.app`;
+
     zolaManager.buildSite(currentProjectDir, tempBuildDir, async (err, stderr) => {
         if (err) {
             afficherMessage(`❌ Erreur Build : ${stderr}`, true);
             return;
         }
 
-        // Étape 2 : Envoi au serveur Netlify
         try {
             await netlifyManager.deploy(config, tempBuildDir, afficherMessage);
             
-            // On affiche le succès et on prévient du léger délai
-            afficherAlerte("🚀 Déploiement Succès !", "Votre site a été envoyé à Netlify.\n\nIl sera accessible en ligne d'ici quelques secondes à l'adresse :\nhttps://" + config.siteId.replace('.netlify.app', '') + ".netlify.app");
+            afficherAlerte("🚀 Déploiement Succès !", `Votre site a été envoyé à Netlify.\n\nIl sera accessible en ligne d'ici quelques secondes à l'adresse :\n${urlProduction}`);
             
-            // Nettoyage : On supprime le dossier compilé temporaire
             try { fs.rmSync(tempBuildDir, { recursive: true, force: true }); } catch (e) { }
 
         } catch (error) {
-            // L'erreur est déjà traitée dans netlifyManager
         }
-    });
+    }, urlProduction);
 }
 
-//
-//
-//
 
 
 
