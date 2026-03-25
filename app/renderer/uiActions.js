@@ -40,7 +40,7 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
             background:white;
             padding:20px;
             border-radius:8px;
-            width:420px;
+            width:500px;
             max-height:90vh;
             overflow:auto;
             box-shadow:0 10px 30px rgba(0,0,0,0.3);
@@ -77,9 +77,9 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
     const templateSelect = document.getElementById('new-page-template');
     const dynamicFields = document.getElementById('dynamic-fields');
 
-    // ============================
-    // Génération dynamique formulaire
-    // ============================
+    // =====================================================
+    // FORMULAIRE DYNAMIQUE
+    // =====================================================
 
     function generateForm(templateFile) {
 
@@ -87,6 +87,7 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
 
         const templatePath = path.join(templatesDir, templateFile);
         const config = templateEngine.loadTemplateConfig(templatePath);
+
 
         if (!config) {
             dynamicFields.innerHTML = "<p style='color:#888'>Aucun fichier YML associé</p>";
@@ -96,26 +97,21 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
         function createInput(key, field, prefix) {
 
             const id = `${prefix}-${key}`;
-
             let inputHTML = "";
 
             switch (field.type) {
                 case "textarea":
                     inputHTML = `<textarea id="${id}" style="width:100%; padding:6px;"></textarea>`;
                     break;
-
                 case "number":
                     inputHTML = `<input type="number" id="${id}" style="width:100%; padding:6px;">`;
                     break;
-
                 case "date":
                     inputHTML = `<input type="date" id="${id}" style="width:100%; padding:6px;">`;
                     break;
-
                 case "boolean":
                     inputHTML = `<input type="checkbox" id="${id}">`;
                     break;
-
                 default:
                     inputHTML = `<input type="text" id="${id}" style="width:100%; padding:6px;">`;
             }
@@ -149,17 +145,17 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
 
     generateForm(templateSelect.value);
 
-    // ============================
+    // =====================================================
     // ANNULATION
-    // ============================
+    // =====================================================
 
     document.getElementById('cancel-new-page').onclick = () => {
         overlay.remove();
     };
 
-    // ============================
+    // =====================================================
     // CRÉATION
-    // ============================
+    // =====================================================
 
     document.getElementById('confirm-new-page').onclick = () => {
 

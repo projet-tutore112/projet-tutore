@@ -310,6 +310,18 @@ function genererFormulaire(frontMatter) {
     callbacks,
     currentProjectDir,
   );
+
+  if (frontMatter.template && currentProjectDir) {
+  const templatePath = path.join(
+    currentProjectDir,
+    "templates",
+    frontMatter.template
+  );
+
+  if (fs.existsSync(templatePath)) {
+    afficherEtatVariablesRenderer(frontMatter, templatePath);
+  }
+}
 }
 
 // ============================================================
@@ -830,9 +842,13 @@ window.updateTemplateFields = () => {
 
   if (!templateFullPath) return;
 
-  // Analyse basée sur le chemin complet (qu'il vienne de App ou Projet)
-  const analysis = templateEngine.analyseTemplate(templateFullPath);
-  const allVars = [...analysis.pageVars, ...analysis.extraVars];
+  // 🔥 NOUVEAU : utilise le moteur avancé
+  const fieldsData = templateEngine.getPageVariables(null, templateFullPath);
+
+  const allFields = [
+    ...fieldsData.page.map(f => ({ ...f, context: "page" })),
+    ...fieldsData.extra.map(f => ({ ...f, context: "extra" }))
+  ];
 
   // Reset si changement de template
   if (container.dataset.currentTemplate !== templateFullPath) {
@@ -842,32 +858,69 @@ window.updateTemplateFields = () => {
 
   const today = new Date().toISOString().split("T")[0];
 
-  allVars.forEach((varName) => {
+  allFields.forEach((field) => {
+    const varName = field.name;
+
     let input = container.querySelector(`[data-key="${varName}"]`);
 
-    let suggestedValue = "";
-    if (varName === "date") suggestedValue = today;
-    else if (varName === "title") {
-      suggestedValue = fileName
-        ? fileName
-            .replace(/[-_]/g, " ")
-            .replace(/\b\w/g, (l) => l.toUpperCase())
-        : "Nouveau Titre";
-    } else if (varName === "draft") suggestedValue = "false";
+    let suggestedValue = field.value ?? "";
+
+    if (!suggestedValue) {
+      if (varName === "date") suggestedValue = today;
+      else if (varName === "title") {
+        suggestedValue = fileName
+          ? fileName
+              .replace(/[-_]/g, " ")
+              .replace(/\b\w/g, (l) => l.toUpperCase())
+          : "Nouveau Titre";
+      } else if (varName === "draft") suggestedValue = "false";
+    }
 
     if (!input) {
       const div = document.createElement("div");
       div.style.marginBottom = "10px";
+
+      const type = field.type || "text";
+
+      let inputHTML = "";
+
+      if (type === "textarea") {
+        inputHTML = `<textarea 
+          class="template-input"
+          data-key="${varName}"
+          data-context="${field.context}"
+          data-user-edited="false"
+          style="width:100%; padding:8px;"
+          oninput="this.dataset.userEdited='true'">${suggestedValue}</textarea>`;
+      }
+      else if (type === "date") {
+        inputHTML = `<input type="date"
+          class="template-input"
+          data-key="${varName}"
+          data-context="${field.context}"
+          data-user-edited="false"
+          value="${suggestedValue}"
+          style="width:100%; padding:8px;"
+          oninput="this.dataset.userEdited='true'">`;
+      }
+      else {
+        inputHTML = `<input type="text"
+          class="template-input"
+          data-key="${varName}"
+          data-context="${field.context}"
+          data-user-edited="false"
+          value="${suggestedValue}"
+          style="width:100%; padding:8px;"
+          oninput="this.dataset.userEdited='true'">`;
+      }
+
       div.innerHTML = `
-                <label style="display:block; font-size:0.8em; font-weight:bold; color: #555;">${varName.toUpperCase()}</label>
-                <input type="text" 
-                       class="template-input" 
-                       data-key="${varName}" 
-                       data-user-edited="false"
-                       value="${suggestedValue}" 
-                       style="width:100%; padding:8px; border: 1px solid #ddd; border-radius:4px;"
-                       oninput="this.dataset.userEdited='true'">
-            `;
+        <label style="display:block; font-size:0.8em; font-weight:bold; color:#555;">
+          ${field.label || varName}
+        </label>
+        ${inputHTML}
+      `;
+
       container.appendChild(div);
     } else {
       if (input.dataset.userEdited === "false") {
@@ -898,7 +951,14 @@ async function validerCreationPage() {
 
   const values = {};
   document.querySelectorAll(".template-input").forEach((input) => {
-    values[input.dataset.key] = input.value;
+    const context = input.dataset.context;
+
+if (context === "extra") {
+  if (!values.extra) values.extra = {};
+  values.extra[input.dataset.key] = input.value;
+} else {
+  values[input.dataset.key] = input.value;
+}
   });
 
   try {
@@ -1156,7 +1216,6 @@ function openNetlifyModal() {
         return;
     }
 
-    // Pré-remplir si l'utilisateur l'a déjà fait avant
     const config = netlifyManager.loadConfig(currentProjectDir);
     if (config) {
         document.getElementById('netlify-site-id').value = config.siteId || '';
@@ -1184,33 +1243,94 @@ async function lancerDeploiementNetlify() {
     closeNetlifyModal();
     afficherMessage("⏳ Génération du site avant envoi Netlify...", false);
 
-    // On génère le site dans un dossier temporaire caché
     const tempBuildDir = path.join(currentProjectDir, '_temp_netlify_deploy');
     
-    // On sauvegarde la config pour la prochaine fois
     netlifyManager.saveConfig(currentProjectDir, config);
 
-    // Étape 1 : Construction du site par Zola
+    const nomNettoye = config.siteId.replace('.netlify.app', '');
+    const urlProduction = `https://${nomNettoye}.netlify.app`;
+
     zolaManager.buildSite(currentProjectDir, tempBuildDir, async (err, stderr) => {
         if (err) {
             afficherMessage(`❌ Erreur Build : ${stderr}`, true);
             return;
         }
 
-        // Étape 2 : Envoi au serveur Netlify
         try {
             await netlifyManager.deploy(config, tempBuildDir, afficherMessage);
             
-            // On affiche le succès et on prévient du léger délai
-            afficherAlerte("🚀 Déploiement Succès !", "Votre site a été envoyé à Netlify.\n\nIl sera accessible en ligne d'ici quelques secondes à l'adresse :\nhttps://" + config.siteId.replace('.netlify.app', '') + ".netlify.app");
+            afficherAlerte("🚀 Déploiement Succès !", `Votre site a été envoyé à Netlify.\n\nIl sera accessible en ligne d'ici quelques secondes à l'adresse :\n${urlProduction}`);
             
-            // Nettoyage : On supprime le dossier compilé temporaire
             try { fs.rmSync(tempBuildDir, { recursive: true, force: true }); } catch (e) { }
 
         } catch (error) {
-            // L'erreur est déjà traitée dans netlifyManager
         }
-    });
+    }, urlProduction);
+}
+
+
+
+
+function afficherEtatVariablesRenderer(frontMatter, templatePath) {
+  const panelId = "template-debug-panel";
+
+  let panel = document.getElementById(panelId);
+
+  if (!panel) {
+    panel = document.createElement("div");
+    panel.id = panelId;
+    panel.style.marginTop = "20px";
+    panel.style.padding = "10px";
+    panel.style.borderTop = "1px solid #ccc";
+
+    panel.innerHTML = `
+      <h4>⚙️ Paramètres Zola (Racine)</h4>
+      <div id="vars-all"></div>
+    `;
+
+    document.getElementById("form-container").appendChild(panel);
+  }
+
+  const container = document.getElementById("vars-all");
+
+  // 🔥 IMPORTANT : utiliser le moteur qui lit le YAML
+  const templateEngine = require("./templateEngine");
+  const data = templateEngine.getPageVariables(null, templatePath);
+
+  const allVars = [
+    ...data.page.map(v => ({ ...v, context: "page" })),
+    ...data.extra.map(v => ({ ...v, context: "extra" }))
+  ];
+
+  // RESET
+  container.innerHTML = "";
+
+  // TRI (optionnel mais propre)
+  allVars.sort((a, b) => a.name.localeCompare(b.name));
+
+  // AFFICHAGE
+  allVars.forEach(v => {
+    const isFilled =
+      v.context === "extra"
+        ? (frontMatter.extra && frontMatter.extra[v.name])
+        : frontMatter[v.name];
+
+    const color = "#27ae60";
+
+    container.innerHTML += `
+      <div style="margin-bottom:10px; padding:8px; border-left:4px solid ${color}; background:#fafafa;">
+        <div style="font-weight:bold;">
+          ${v.name}
+          <span style="font-size:11px; color:#888;">
+            (${v.type || "string"})
+          </span>
+        </div>
+        <div style="font-size:12px; color:#555;">
+          ${v.description || "Aucune description"}
+        </div>
+      </div>
+    `;
+  });
 }
 
 // ============================================================
