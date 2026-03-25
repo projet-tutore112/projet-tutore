@@ -1,11 +1,8 @@
 commandes pour initialisation:
-npm install --save-dev @electron-forge/cli
+npm install
 
-npx electron-forge import
+en cas de mise à jour de l'application:
+npm update
 
 Pour lancer l'appli:
 npm start
-
-dependance : 
-    
-    npm install unified remark-parse remark-stringify
