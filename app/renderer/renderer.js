@@ -1277,44 +1277,7 @@ async function lancerDeploiementNetlify() {
 //
 //
 
-function afficherEtatVariables(mdPath, templatePath) {
-  const containerUsed = document.getElementById("vars-used");
-  const containerMissing = document.getElementById("vars-missing");
-  const containerUnknown = document.getElementById("vars-unknown");
 
-  if (!containerUsed || !containerMissing || !containerUnknown) return;
-
-  const data = templateEngine.getPageVariables(mdPath, templatePath);
-
-  // RESET
-  containerUsed.innerHTML = "";
-  containerMissing.innerHTML = "";
-  containerUnknown.innerHTML = "";
-
-  // ===== USED =====
-  const used = [...data.page, ...data.extra].filter(f => f.used);
-
-  containerUsed.innerHTML = `<strong style="color:#27ae60;">✅ Utilisées (${used.length})</strong>`;
-  used.forEach(f => {
-    containerUsed.innerHTML += `<div style="font-size:12px;">• ${f.name}</div>`;
-  });
-
-  // ===== MISSING =====
-  const missing = [...data.page, ...data.extra].filter(f => !f.used);
-
-  containerMissing.innerHTML = `<strong style="color:#f39c12;">⚠️ Manquantes (${missing.length})</strong>`;
-  missing.forEach(f => {
-    containerMissing.innerHTML += `<div style="font-size:12px;">• ${f.name}</div>`;
-  });
-
-  // ===== UNKNOWN =====
-  const unknown = data.unknown;
-
-  containerUnknown.innerHTML = `<strong style="color:#e74c3c;">❌ Inconnues (${unknown.length})</strong>`;
-  unknown.forEach(f => {
-    containerUnknown.innerHTML += `<div style="font-size:12px;">• ${f.name}</div>`;
-  });
-}
 
 function afficherEtatVariablesRenderer(frontMatter, templatePath) {
   const panelId = "template-debug-panel";
@@ -1329,57 +1292,53 @@ function afficherEtatVariablesRenderer(frontMatter, templatePath) {
     panel.style.borderTop = "1px solid #ccc";
 
     panel.innerHTML = `
-      <h4>📊 Variables</h4>
-      <div id="vars-used"></div>
-      <div id="vars-missing"></div>
-      <div id="vars-unknown"></div>
+      <h4>⚙️ Paramètres Zola (Racine)</h4>
+      <div id="vars-all"></div>
     `;
 
     document.getElementById("form-container").appendChild(panel);
   }
 
-  const usedDiv = document.getElementById("vars-used");
-  const missingDiv = document.getElementById("vars-missing");
-  const unknownDiv = document.getElementById("vars-unknown");
+  const container = document.getElementById("vars-all");
 
-  const analysis = require("./templateEngine").analyseTemplate(templatePath);
+  // 🔥 IMPORTANT : utiliser le moteur qui lit le YAML
+  const templateEngine = require("./templateEngine");
+  const data = templateEngine.getPageVariables(null, templatePath);
 
-  const expected = [...analysis.pageVars, ...analysis.extraVars];
+  const allVars = [
+    ...data.page.map(v => ({ ...v, context: "page" })),
+    ...data.extra.map(v => ({ ...v, context: "extra" }))
+  ];
 
-  const used = [];
-  const missing = [];
-  const unknown = [];
+  // RESET
+  container.innerHTML = "";
 
-  // Page vars
-  expected.forEach(v => {
-    if (frontMatter[v] && frontMatter[v] !== "") used.push(v);
-    else missing.push(v);
+  // TRI (optionnel mais propre)
+  allVars.sort((a, b) => a.name.localeCompare(b.name));
+
+  // AFFICHAGE
+  allVars.forEach(v => {
+    const isFilled =
+      v.context === "extra"
+        ? (frontMatter.extra && frontMatter.extra[v.name])
+        : frontMatter[v.name];
+
+    const color = "#27ae60";
+
+    container.innerHTML += `
+      <div style="margin-bottom:10px; padding:8px; border-left:4px solid ${color}; background:#fafafa;">
+        <div style="font-weight:bold;">
+          ${v.name}
+          <span style="font-size:11px; color:#888;">
+            (${v.type || "string"})
+          </span>
+        </div>
+        <div style="font-size:12px; color:#555;">
+          ${v.description || "Aucune description"}
+        </div>
+      </div>
+    `;
   });
-
-  // Unknown vars
-  Object.keys(frontMatter).forEach(v => {
-    if (v === "extra") return;
-    if (!expected.includes(v) && v !== "template") {
-      unknown.push(v);
-    }
-  });
-
-  if (frontMatter.extra) {
-    Object.keys(frontMatter.extra).forEach(v => {
-      if (!expected.includes(v)) {
-        unknown.push("extra." + v);
-      }
-    });
-  }
-
-  usedDiv.innerHTML = `<strong style="color:#27ae60;">✅ Utilisées (${used.length})</strong>`
-    + used.map(v => `<div>• ${v}</div>`).join("");
-
-  missingDiv.innerHTML = `<strong style="color:#f39c12;">⚠️ Manquantes (${missing.length})</strong>`
-    + missing.map(v => `<div>• ${v}</div>`).join("");
-
-  unknownDiv.innerHTML = `<strong style="color:#e74c3c;">❌ Inconnues (${unknown.length})</strong>`
-    + unknown.map(v => `<div>• ${v}</div>`).join("");
 }
 
 // ============================================================

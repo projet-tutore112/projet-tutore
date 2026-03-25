@@ -25,7 +25,6 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
 
     const overlay = document.createElement('div');
     overlay.id = 'modal-new-page';
-
     overlay.style.cssText = `
         position:fixed;
         inset:0;
@@ -41,7 +40,7 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
             background:white;
             padding:20px;
             border-radius:8px;
-            width:420px;
+            width:500px;
             max-height:90vh;
             overflow:auto;
             box-shadow:0 10px 30px rgba(0,0,0,0.3);
@@ -62,14 +61,6 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
 
             <div id="dynamic-fields"></div>
 
-            <!-- 🔥 PANEL VARIABLES -->
-            <div id="template-debug-panel" style="margin-top:20px; padding:10px; border-top:1px solid #ccc;">
-                <h4>📊 Variables</h4>
-                <div id="vars-used"></div>
-                <div id="vars-missing"></div>
-                <div id="vars-unknown"></div>
-            </div>
-
             <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
                 <button id="cancel-new-page">Annuler</button>
                 <button id="confirm-new-page"
@@ -87,54 +78,7 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
     const dynamicFields = document.getElementById('dynamic-fields');
 
     // =====================================================
-    // 🔥 DEBUG VARIABLES
-    // =====================================================
-
-    function updateVariablesUI(templatePath, values) {
-
-        const usedDiv = document.getElementById("vars-used");
-        const missingDiv = document.getElementById("vars-missing");
-        const unknownDiv = document.getElementById("vars-unknown");
-
-        const analysis = templateEngine.analyseTemplate(templatePath);
-
-        const expected = [...analysis.pageVars, ...analysis.extraVars];
-
-        const used = [];
-        const missing = [];
-        const unknown = [];
-
-        expected.forEach(v => {
-            if (values[v] && values[v] !== "") used.push(v);
-            else missing.push(v);
-        });
-
-        Object.keys(values).forEach(v => {
-            if (!expected.includes(v)) unknown.push(v);
-        });
-
-        // UI
-        usedDiv.innerHTML = `<strong style="color:#27ae60;">✅ Utilisées (${used.length})</strong>`
-            + used.map(v => `<div>• ${v}</div>`).join("");
-
-        missingDiv.innerHTML = `<strong style="color:#f39c12;">⚠️ Manquantes (${missing.length})</strong>`
-            + missing.map(v => `<div>• ${v}</div>`).join("");
-
-        unknownDiv.innerHTML = `<strong style="color:#e74c3c;">❌ Inconnues (${unknown.length})</strong>`
-            + unknown.map(v => `<div>• ${v}</div>`).join("");
-    }
-
-    function collectCurrentValues() {
-        const values = {};
-        document.querySelectorAll("#dynamic-fields input, #dynamic-fields textarea").forEach(input => {
-            const key = input.id.replace("page-", "").replace("extra-", "");
-            values[key] = input.type === "checkbox" ? input.checked : input.value;
-        });
-        return values;
-    }
-
-    // =====================================================
-    // FORMULAIRE
+    // FORMULAIRE DYNAMIQUE
     // =====================================================
 
     function generateForm(templateFile) {
@@ -144,6 +88,7 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
         const templatePath = path.join(templatesDir, templateFile);
         const config = templateEngine.loadTemplateConfig(templatePath);
 
+
         if (!config) {
             dynamicFields.innerHTML = "<p style='color:#888'>Aucun fichier YML associé</p>";
             return;
@@ -152,7 +97,6 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
         function createInput(key, field, prefix) {
 
             const id = `${prefix}-${key}`;
-
             let inputHTML = "";
 
             switch (field.type) {
@@ -193,27 +137,25 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
                 dynamicFields.innerHTML += createInput(key, config.extra[key], "extra");
             }
         }
-
-        // 🔥 écoute en live
-        setTimeout(() => {
-            document.querySelectorAll("#dynamic-fields input, #dynamic-fields textarea").forEach(input => {
-                input.addEventListener("input", () => {
-                    updateVariablesUI(templatePath, collectCurrentValues());
-                });
-            });
-
-            updateVariablesUI(templatePath, collectCurrentValues());
-        }, 0);
     }
 
-    templateSelect.onchange = () => generateForm(templateSelect.value);
+    templateSelect.onchange = () => {
+        generateForm(templateSelect.value);
+    };
+
     generateForm(templateSelect.value);
 
     // =====================================================
-    // ACTIONS
+    // ANNULATION
     // =====================================================
 
-    document.getElementById('cancel-new-page').onclick = () => overlay.remove();
+    document.getElementById('cancel-new-page').onclick = () => {
+        overlay.remove();
+    };
+
+    // =====================================================
+    // CRÉATION
+    // =====================================================
 
     document.getElementById('confirm-new-page').onclick = () => {
 
@@ -229,7 +171,39 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
         const templatePath = path.join(templatesDir, templateFile);
         const config = templateEngine.loadTemplateConfig(templatePath);
 
-        const values = collectCurrentValues();
+        const values = {};
+
+        if (config) {
+
+            if (config.page) {
+                for (const key in config.page) {
+                    const field = config.page[key];
+                    const input = document.getElementById(`page-${key}`);
+                    const value = field.type === "boolean"
+                        ? input.checked
+                        : input.value;
+
+                    if (field.required && !value) {
+                        afficherErreur(`${field.label} est obligatoire`);
+                        return;
+                    }
+
+                    values[key] = value;
+                }
+            }
+
+            if (config.extra) {
+                for (const key in config.extra) {
+                    const field = config.extra[key];
+                    const input = document.getElementById(`extra-${key}`);
+                    const value = field.type === "boolean"
+                        ? input.checked
+                        : input.value;
+
+                    values[key] = value;
+                }
+            }
+        }
 
         try {
 
@@ -242,7 +216,9 @@ module.exports = function creerNouvellePageUI(projectDir, refreshFiles, openFile
             );
 
             const contentDir = path.join(projectDir, 'content');
-            if (!fs.existsSync(contentDir)) fs.mkdirSync(contentDir, { recursive: true });
+            if (!fs.existsSync(contentDir)) {
+                fs.mkdirSync(contentDir, { recursive: true });
+            }
 
             const filePath = path.join(contentDir, `${safeName}.md`);
 

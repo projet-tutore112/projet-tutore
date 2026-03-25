@@ -183,12 +183,11 @@ function extractVariablesFromTemplate(htmlContent) {
 function generateYaml(templateId, variables) {
 
     if (variables.length === 0) {
-        return `id: ${templateId}
-label: ${templateId}
-description: >
-  Template sans variables détectées.
-fields: []
-`;
+        return `  - name: ${clean}
+            label: ${label}
+            type: ${type}
+            description: Description de ${label}
+            required: false`;
     }
 
     const fields = variables.map(variable => {
@@ -260,19 +259,26 @@ function getPageVariables(mdPath, templatePath) {
     // YAML PRIORITAIRE
     if (yamlConfig && yamlConfig.fields) {
 
-        yamlConfig.fields.forEach(field => {
-            const value = mdData.extra[field.name];
+    yamlConfig.fields.forEach(field => {
 
-            result.extra.push({
-                name: field.name,
-                label: field.label || field.name,
-                type: field.type || "text",
-                value: value ?? null,
-                used: value !== undefined
-            });
+        const isExtra = analysis.extraVars.includes(field.name);
+
+        const value = isExtra
+            ? mdData.extra[field.name]
+            : mdData.page[field.name];
+
+        const target = isExtra ? result.extra : result.page;
+
+        target.push({
+            name: field.name,
+            label: field.label || field.name,
+            type: field.type || detectFieldType(field.name),
+            description: field.description || "",
+            value: value ?? null
         });
+    });
 
-    } else {
+} else {
 
         analysis.extraVars.forEach(name => {
             const value = mdData.extra[name];
@@ -297,16 +303,6 @@ function getPageVariables(mdPath, templatePath) {
         });
     });
 
-    // VARIABLES INCONNUES
-    Object.keys(mdData.extra).forEach(key => {
-        const exists = result.extra.find(f => f.name === key);
-        if (!exists) {
-            result.unknown.push({
-                name: key,
-                value: mdData.extra[key]
-            });
-        }
-    });
 
     return result;
 }
