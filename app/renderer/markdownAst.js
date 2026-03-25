@@ -15,8 +15,6 @@ function astToMarkdown(ast) {
             fences: true,
             incrementListMarker: false,
             handlers: {
-                // CORRECTION ICI : Le premier argument EST le nœud.
-                // Cela évite l'erreur "Cannot read properties of undefined"
                 html: (node) => node.value 
             }
         })
