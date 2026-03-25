@@ -7,19 +7,10 @@ fields:
   - name: extra.cover_image
     label: Cover Image
     type: text
-    required: false
+    description: Image affiché dans l'accueil et les onglets.
 
-  - name: title
-    label: Title
-    type: text
-    required: false
 
-  - name: date
-    label: Date
-    type: date
-    required: false
-
-  - name: content
-    label: Content
-    type: textarea
-    required: false
+  - name: in_carousel
+    label: Dans le carrousel
+    type: boolean
+    description: Afficher dans le carousel de la page d'accueil, mettre true pour afficher, false pour ne pas afficher.
