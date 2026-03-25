@@ -25,8 +25,9 @@ function createWindow() {
     });
 }
 
-ipcMain.handle('dialog:openImage', async () => {
+ipcMain.handle('dialog:openImage', async (event, defaultPath) => {
     const { canceled, filePaths } = await dialog.showOpenDialog({
+        defaultPath: defaultPath,
         properties: ['openFile'],
         filters: [
             { name: 'Images', extensions: ['jpg', 'png', 'gif', 'webp', 'jpeg', 'svg'] }
@@ -36,12 +37,13 @@ ipcMain.handle('dialog:openImage', async () => {
     if (canceled) {
         return null;
     } else {
-        return filePaths[0]; // Renvoie le chemin complet de l'image choisie
+        return filePaths[0];
     }
 });
 
-ipcMain.handle('dialog:openVideo', async () => {
+ipcMain.handle('dialog:openVideo', async (event, defaultPath) => {
     const { canceled, filePaths } = await dialog.showOpenDialog({
+        defaultPath: defaultPath,
         properties: ['openFile'],
         filters: [
             { name: 'Vidéos', extensions: ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'] }

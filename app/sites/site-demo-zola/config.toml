@@ -1,5 +1,4 @@
 # --- CONFIGURATION OBLIGATOIRE ---
-# C'est cette ligne qui manquait et causait l'erreur
 base_url = "http://127.0.0.1:1111"
 
 # --- MÉTADONNÉES DU SITE ---

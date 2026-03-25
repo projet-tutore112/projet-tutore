@@ -395,19 +395,26 @@ async function importerMedia(inputId, previewId, type) {
     return;
   }
 
-  const action = type === "video" ? "dialog:openVideo" : "dialog:openImage";
-  const cheminSource = await ipcRenderer.invoke(action);
-
-  if (!cheminSource) return;
-
+  // On détermine le dossier cible (static/images ou static/videos)
   const subFolder = type === "video" ? "videos" : "images";
   const dossierCible = path.join(currentProjectDir, "static", subFolder);
+
+  // On s'assure que ce dossier existe, sinon l'explorateur de fichiers risque de planter ou s'ouvrir ailleurs
+  if (!fs.existsSync(dossierCible)) {
+    fs.mkdirSync(dossierCible, { recursive: true });
+  }
+
+  //On appelle le processus principal en lui passant le dossier cible
+  const action = type === "video" ? "dialog:openVideo" : "dialog:openImage";
+  const cheminSource = await ipcRenderer.invoke(action, dossierCible);
+
+  if (!cheminSource) return;
 
   if (!fs.existsSync(dossierCible)) {
     fs.mkdirSync(dossierCible, { recursive: true });
   }
 
-  // --- NOUVEAU : Vérifier si le fichier est DÉJÀ dans le projet ---
+  //Vérifier si le fichier est déjà dans le projet ---
   const dossierSource = path.dirname(cheminSource);
   let cheminZola = "";
   let cheminDestination = cheminSource; // Par défaut, on pointe sur le fichier source
