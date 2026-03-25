@@ -1,4 +1,4 @@
-#Interface d'Édition pour Zola (CMS Local)
+# Interface d'Édition pour Zola (CMS Local)
 
 Cette application de bureau (Desktop) est une interface graphique développée avec Electron. Elle agit comme un CMS local pour simplifier la création, l'édition et le déploiement de contenu sur des sites statiques générés par **[Zola](https://www.getzola.org/)**.
 
