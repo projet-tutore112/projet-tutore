@@ -22,4 +22,4 @@ Avant de pouvoir installer et lancer l'application, assurez-vous d'avoir les él
 1. **Cloner le dépôt :**
    Ouvrez votre terminal et exécutez la commande suivante :
    ```bash
-   git clone [https://github.com/VOTRE_NOM/VOTRE_PROJET.git](https://github.com/VOTRE_NOM/VOTRE_PROJET.git)
+   git clone https://github.com/projet-tutore112/projet-tutore.git
