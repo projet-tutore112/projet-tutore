@@ -6,7 +6,7 @@ Elle est pensée pour les rédacteurs et contributeurs non-techniques, leur perm
 
 ---
 
-## 📋 Prérequis
+## Prérequis
 
 Avant de pouvoir installer et lancer l'application, assurez-vous d'avoir les éléments suivants installés sur votre machine :
 
@@ -17,9 +17,9 @@ Avant de pouvoir installer et lancer l'application, assurez-vous d'avoir les él
 
 ---
 
-## 🛠️ Installation
+## Installation
 
 1. **Cloner le dépôt :**
    Ouvrez votre terminal et exécutez la commande suivante :
    ```bash
-   git clone [https://github.com/VOTRE_NOM/VOTRE_PROJET.git](https://github.com/VOTRE_NOM/VOTRE_PROJET.git)
+   git clone https://github.com/projet-tutore112/projet-tutore.git
