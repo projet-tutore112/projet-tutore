@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mon Site Zola GUI</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+    <style>
+        nav { background: #f0f0f0; padding: 10px; border-radius: 5px; }
+        nav a { margin-right: 15px; text-decoration: none; font-weight: bold; }
+        .hero { text-align: center; margin-bottom: 40px; }
+        img { max-width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
+    .hero-section {
+        text-align: center;
+        padding: 40px 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 40px;
+    }
+
+    .hero-section h1 {
+        color: #2c3e50;
+        font-size: 2.5em;
+        margin-bottom: 10px;
+    }
+
+    .subtitle {
+        font-size: 1.2em;
+        color: #666;
+        margin-bottom: 30px;
+    }
+
+    .hero-image-container img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        border: 1px solid #ddd;
+    }
+
+    .why-section {
+        text-align: center;
+        max-width: 800px;
+        margin: 0 auto 50px auto;
+        padding: 0 20px;
+    }
+    
+    .why-section h2 {
+        border-bottom: 2px solid #007bff;
+        display: inline-block;
+        padding-bottom: 10px;
+    }
+
+    /* GRILLE 3 COLONNES */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+        margin-bottom: 50px;
+    }
+
+    .feature-card {
+        text-align: center;
+        padding: 20px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        transition: transform 0.2s;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .feature-card .icon {
+        font-size: 3em;
+        margin-bottom: 15px;
+    }
+
+    .spacer {
+        margin: 60px 0;
+        border: 0;
+        border-top: 1px solid #eee;
+    }
+
+    .shadow-img {
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+
+    .tech-icon {
+        font-size: 3em;
+        margin-bottom: 15px;
+    }
+
+    .video-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .video-card {
+        background: #fff;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #eee;
+        text-align: center;
+    }
+
+    .video-card h3 {
+        font-size: 1.1em;
+        margin-bottom: 10px;
+        color: #444;
+    }
+
+    video {
+        width: 100%;
+        border-radius: 4px;
+        background: #000;
+        aspect-ratio: 16/9;
+    }
+    
+    @media (max-width: 768px) {
+        .reverse-mobile { flex-direction: column-reverse; }
+    }
+
+    .mission-list {
+        list-style: none; /* Enlève les points noirs */
+        padding: 0;
+    }
+    .mission-list li {
+        margin-bottom: 10px;
+        padding-left: 30px;
+        position: relative;
+        font-size: 1.1em;
+    }
+    .mission-list li::before {
+        content: "✅"; /* Ajoute la coche verte */
+        position: absolute;
+        left: 0;
+    }
+
+    /* CARTES RÔLES */
+    .role-card {
+        text-align: center;
+        border-top: 5px solid #ccc; /* Petite barre de couleur en haut */
+    }
+    .user-style { border-top-color: #4CAF50; } /* Vert pour user */
+    .admin-style { border-top-color: #f44336; } /* Rouge pour admin */
+
+    .role-card ul {
+        margin-top: 10px;
+        padding-left: 20px;
+    }
+
+    /* BOITE MISE EN AVANT (Phrase dynamique) */
+    .highlight-box {
+        background-color: #cf29f8; /* Bleu très clair */
+        border-left: 5px solid #2196F3; /* Barre bleue à gauche */
+        padding: 20px;
+        margin: 40px 0;
+        border-radius: 4px;
+    }
+    .highlight-box h3 { margin-top: 0; color: #0d47a1; }
+    .highlight-box p { margin-bottom: 0; font-size: 1.1em; }
+    </style>
+</head>
+<body>
+<nav>
+        <a href="https://projet-tutore112.github.io/projet-tutore/">🏠 Accueil</a>
+        
+        <a href="https://projet-tutore112.github.io/projet-tutore/projet/">🚀 Le Projet</a>
+        
+        <a href="https://projet-tutore112.github.io/projet-tutore/technique/">⚙️ Technique</a>
+    </nav>
+
+    <main>
+        
+    <h1>Documentation Technique</h1>
+    
+    <p class="lead">L'application est une solution de bureau (Desktop) développée avec <strong>Electron.js</strong>. Elle permet de piloter le moteur Zola localement et d'automatiser des tâches complexes (création de pages, versioning, déploiement) via une interface modulaire.</p>
+<div>
+        <img src="/projet-tutore/images/zolashema.png" alt="Illustration du contexte">
+</div>
+<hr class="spacer">
+<h2>1. Architecture Modulaire & Intelligence</h2>
+<p>Le code JavaScript a été entièrement restructuré pour séparer la logique en plusieurs modules spécialisés :</p>
+<div class="grid-3">
+    <div class="card">
+        <div class="tech-icon">⚙️</div> 
+        <h3>Template Engine</h3>
+        <p>Ce module scanne les fichiers HTML de Zola, utilise des expressions régulières pour extraire les variables Twig (<code>page.extra</code>), et génère automatiquement un fichier de configuration YAML. Les formulaires s'adaptent ainsi tout seuls au design !</p>
+    </div>
+    <div class="card">
+        <div class="tech-icon">🌳</div> 
+        <h3>Manipulation AST</h3>
+        <p>Le Markdown n'est plus traité comme du simple texte. Il est converti en Arbre Syntaxique (AST) avec la librairie <code>unified</code>. Cela permet d'injecter des blocs avancés (comme du HTML brut pour les <strong>Carrousels</strong>) sans casser la structure du document.</p>
+    </div>
+    <div class="card">
+        <div class="tech-icon">⏳</div> 
+        <h3>Git Manager</h3>
+        <p>L'application exécute des commandes Git natives en arrière-plan via <code>child_process</code>. L'utilisateur peut sauvegarder des versions, naviguer dans l'historique et restaurer d'anciennes modifications sans jamais ouvrir un terminal.</p>
+    </div>
+</div>
+<hr class="spacer">
+<div class="split-layout">
+    <div>
+        <h2>2. Déploiement Multi-Cibles</h2>
+        <p>Pour mettre le site en ligne, l'application propose deux pipelines distincts :</p>
+        <ul class="mission-list">
+            <li><strong>Serveur FTP classique :</strong> L'application exécute <code>zola build</code> dans un dossier temporaire, se connecte au serveur via <code>basic-ftp</code>, nettoie le répertoire distant et transfère les fichiers compilés.</li>
+            <li><strong>Intégration Continue (GitHub) :</strong> L'application génère automatiquement un workflow <code>zola.yml</code>. Lors du clic sur "Publier" (Git Push), ce sont les serveurs de GitHub qui compilent et hébergent le site.</li>
+            <li><strong>Déploiement Accéléré (Netlify) :</strong> L'application compile le site localement, compresse le résultat sous forme d'archive zip, et l'envoie instantanément aux serveurs via l'API REST de Netlify pour une mise en ligne en quelques secondes.</li>
+        </ul>
+    </div>
+    <div>
+        <div class="highlight-box" style="border-left-color: #e74c3c; background-color: #fadbd8;">
+            <h3 style="color: #c0392b;">⚠️ Attention : Configuration GitHub Pages</h3>
+            <p style="color: #333; font-size: 0.95em;">Si vous utilisez le bouton <strong>"Configurer GitHub Pages"</strong> dans l'application, une manipulation manuelle unique est indispensable sur le site web de GitHub pour autoriser l'affichage :</p>
+            <ol style="margin-top: 10px; font-weight: bold; color: #c0392b; font-size: 0.9em;">
+                <li>Allez dans l'onglet <em>Settings</em> de votre dépôt GitHub.</li>
+                <li>Cliquez sur <em>Pages</em> dans le menu de gauche.</li>
+                <li>Dans la section "Build and deployment", modifiez la <strong>Source</strong> pour choisir <strong>"GitHub Actions"</strong>.</li>
+            </ol>
+        </div>
+    </div>
+</div>
+<hr class="spacer">
+<h2 style="text-align:center; margin-bottom: 30px;">Démonstrations</h2>
+<div class="video-grid">
+    <div class="video-card">
+        <div  style="text-align: center; margin: 20px 0;">
+    <iframe 
+        src="https://www.youtube-nocookie.com/embed/oNLMvDs6Iyo" 
+        webkitallowfullscreen 
+        mozallowfullscreen 
+        allowfullscreen
+        style="width: 100%; aspect-ratio: 16/9; border: none; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+    </iframe>
+</div>
+        <h3>Création et édition</h3>
+        <p style="font-size: 0.9em; color: #666;">Créer/modifier des pages via l'application.</p>
+    </div>
+    <div class="video-card">
+    <div  style="text-align: center; margin: 20px 0;">
+    <iframe 
+        src="https://www.youtube-nocookie.com/embed/JEO_SXX_y20 " 
+        webkitallowfullscreen 
+        mozallowfullscreen 
+        allowfullscreen
+        style="width: 100%; aspect-ratio: 16/9; border: none; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+    </iframe>
+</div>
+        <h3>Déploiement</h3>
+        <p style="font-size: 0.9em; color: #666;">Exemple de déploiement via Netlify</p>
+    </div>
+</div>
+<hr class="spacer">
+<div style="text-align:center; background-color: #3696f7; padding: 40px; border-radius: 8px; border: 1px solid #e9ecef; margin-top: 40px;">
+    <h2 style="margin-top: 0; color: #2c3e50;">📥 Ressources Annexes</h2>
+    <p style="margin-bottom: 25px;">Vous souhaitez consulter le rapport détaillé du projet, étudier le code source, ou installer l'exécutable généré par Electron Forge ?</p>
+    <a href="/projet-tutore/documents/rapport-technique.pdf" download style="background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; transition: background 0.3s">📄 Télécharger le Rapport (.docx)  </a>
+    <a href="https://github.com/projet-tutore112/projet-tutore" download style="background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; transition: background 0.3s">Lien vers le dépôt github de l'application</a>
+</div>
+
+    </main>
+</body>
+</html>

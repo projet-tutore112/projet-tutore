@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+    <title>Mon Site Zola GUI</title>
+    <link rel="self" type="application/atom+xml" href="https://projet-tutore112.github.io/projet-tutore/atom.xml"/>
+    <link rel="alternate" type="text/html" href="https://projet-tutore112.github.io/projet-tutore"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2026-02-02T00:00:00+00:00</updated>
+    <id>https://projet-tutore112.github.io/projet-tutore/atom.xml</id>
+    <entry xml:lang="en">
+        <title>Le Projet</title>
+        <published>2026-02-02T00:00:00+00:00</published>
+        <updated>2026-02-02T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://projet-tutore112.github.io/projet-tutore/projet/"/>
+        <id>https://projet-tutore112.github.io/projet-tutore/projet/</id>
+        
+        <content type="html" xml:base="https://projet-tutore112.github.io/projet-tutore/projet/">&lt;div class=&quot;split-layout&quot;&gt;
+    &lt;div&gt;
+        &lt;h2&gt;Contexte &amp; Objectifs&lt;&#x2F;h2&gt;
+        &lt;h3&gt;Un CMS de Bureau pour Sites Statiques Zola.&lt;&#x2F;h3&gt;
+        &lt;p&gt;Notre but est de fournir une interface graphique (GUI) locale, packagée sous forme de logiciel installable, permettant de créer et gérer un site Zola existant &lt;strong&gt;sans aucune compétence en programmation&lt;&#x2F;strong&gt;.&lt;&#x2F;p&gt;
+    &lt;&#x2F;div&gt;
+    &lt;div class=&quot;video-card&quot;&gt;
+    &lt;div  style=&quot;text-align: center; margin: 20px 0;&quot;&gt;
+    &lt;iframe 
+        src=&quot;https:&#x2F;&#x2F;www.youtube-nocookie.com&#x2F;embed&#x2F;WVQNynpU7eY&quot; 
+        webkitallowfullscreen 
+        mozallowfullscreen 
+        allowfullscreen
+        style=&quot;width: 100%; aspect-ratio: 16&#x2F;9; border: none; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);&quot;&gt;
+    &lt;&#x2F;iframe&gt;
+&lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+&lt;hr class=&quot;spacer&quot;&gt;
+&lt;div style=&quot;max-width: 800px; margin: 0 auto;&quot;&gt;
+    &lt;h2&gt;Notre Mission&lt;&#x2F;h2&gt;
+    &lt;ul class=&quot;mission-list&quot;&gt;
+        &lt;li&gt;Masquer la complexité technique (Lignes de commande, Markdown strict).&lt;&#x2F;li&gt;
+        &lt;li&gt;Analyser dynamiquement les besoins des thèmes graphiques.&lt;&#x2F;li&gt;
+        &lt;li&gt;Sécuriser le travail des utilisateurs avec un système de versions.&lt;&#x2F;li&gt;
+        &lt;li&gt;Simplifier la mise en ligne avec des déploiements automatisés.&lt;&#x2F;li&gt;
+    &lt;&#x2F;ul&gt;
+&lt;&#x2F;div&gt;
+&lt;hr class=&quot;spacer&quot;&gt;
+&lt;h2 style=&quot;text-align:center; margin-bottom:30px;&quot;&gt;Ce que vous pouvez faire&lt;&#x2F;h2&gt;
+    &lt;div class=&quot;card role-card user-style&quot;&gt;
+        &lt;div style=&quot;text-align: left; margin-top: 15px;&quot;&gt;
+            &lt;strong&gt;Actions clés :&lt;&#x2F;strong&gt;
+            &lt;ul&gt;
+                &lt;li&gt;Créer des pages à partir de templates analysés automatiquement.&lt;&#x2F;li&gt;
+                &lt;li&gt;Ajouter des médias complexes (Vidéos, Carrousels d&#x27;images).&lt;&#x2F;li&gt;
+                &lt;li&gt;Naviguer dans l&#x27;historique du site et restaurer d&#x27;anciennes versions.&lt;&#x2F;li&gt;
+                &lt;li&gt;Prévisualiser le site en temps réel.&lt;&#x2F;li&gt;
+                &lt;li&gt;Publier le site sur un serveur FTP ou via GitHub Pages en 1 clic.&lt;&#x2F;li&gt;
+            &lt;&#x2F;ul&gt;
+        &lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+&lt;div class=&quot;highlight-box&quot;&gt;
+    &lt;h3&gt;Intelligence du système&lt;&#x2F;h3&gt;
+    &lt;p&gt;L&#x27;interface ne se contente pas d&#x27;être jolie : elle analyse en temps réel la configuration du site et le code HTML de vos templates pour générer automatiquement les formulaires dont vous avez besoin.&lt;&#x2F;p&gt;
+&lt;&#x2F;div&gt;
+&lt;hr class=&quot;spacer&quot;&gt;
+&lt;h2 style=&quot;text-align:center;&quot;&gt;Périmètre Fonctionnel&lt;&#x2F;h2&gt;
+&lt;div class=&quot;grid-3&quot;&gt;
+    &lt;div class=&quot;card&quot;&gt;
+        &lt;h3&gt;Édition Avancée (AST)&lt;&#x2F;h3&gt;
+        &lt;p&gt;Formulaires auto-générés, conversion bidirectionnelle intelligente, intégration de composants riches (Carrousels, citations, code).&lt;&#x2F;p&gt;
+    &lt;&#x2F;div&gt;
+    &lt;div class=&quot;card&quot;&gt;
+        &lt;h3&gt;Déploiement &amp; Versioning&lt;&#x2F;h3&gt;
+        &lt;p&gt;Historique Git transparent pour l&#x27;utilisateur, génération du site statique, et publication intégrée (FTP &amp; GitHub Actions).&lt;&#x2F;p&gt;
+    &lt;&#x2F;div&gt;
+    &lt;div class=&quot;card&quot;&gt;
+        &lt;h3&gt;Logiciel Autonome&lt;&#x2F;h3&gt;
+        &lt;p&gt;Application Desktop indépendante (Windows&#x2F;Linux&#x2F;Mac) embarquant toutes les dépendances nécessaires à la création web.&lt;&#x2F;p&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;</content>
+        
+    </entry>
+    <entry xml:lang="en">
+        <title>Documentation Technique</title>
+        <published>2026-02-02T00:00:00+00:00</published>
+        <updated>2026-02-02T00:00:00+00:00</updated>
+        
+        <author>
+          <name>
+            
+              Unknown
+            
+          </name>
+        </author>
+        
+        <link rel="alternate" type="text/html" href="https://projet-tutore112.github.io/projet-tutore/technique/"/>
+        <id>https://projet-tutore112.github.io/projet-tutore/technique/</id>
+        
+        <content type="html" xml:base="https://projet-tutore112.github.io/projet-tutore/technique/">&lt;p class=&quot;lead&quot;&gt;L&#x27;application est une solution de bureau (Desktop) développée avec &lt;strong&gt;Electron.js&lt;&#x2F;strong&gt;. Elle permet de piloter le moteur Zola localement et d&#x27;automatiser des tâches complexes (création de pages, versioning, déploiement) via une interface modulaire.&lt;&#x2F;p&gt;
+&lt;div&gt;
+        &lt;img src=&quot;&#x2F;projet-tutore&#x2F;images&#x2F;zolashema.png&quot; alt=&quot;Illustration du contexte&quot;&gt;
+&lt;&#x2F;div&gt;
+&lt;hr class=&quot;spacer&quot;&gt;
+&lt;h2&gt;1. Architecture Modulaire &amp; Intelligence&lt;&#x2F;h2&gt;
+&lt;p&gt;Le code JavaScript a été entièrement restructuré pour séparer la logique en plusieurs modules spécialisés :&lt;&#x2F;p&gt;
+&lt;div class=&quot;grid-3&quot;&gt;
+    &lt;div class=&quot;card&quot;&gt;
+        &lt;div class=&quot;tech-icon&quot;&gt;⚙️&lt;&#x2F;div&gt; 
+        &lt;h3&gt;Template Engine&lt;&#x2F;h3&gt;
+        &lt;p&gt;Ce module scanne les fichiers HTML de Zola, utilise des expressions régulières pour extraire les variables Twig (&lt;code&gt;page.extra&lt;&#x2F;code&gt;), et génère automatiquement un fichier de configuration YAML. Les formulaires s&#x27;adaptent ainsi tout seuls au design !&lt;&#x2F;p&gt;
+    &lt;&#x2F;div&gt;
+    &lt;div class=&quot;card&quot;&gt;
+        &lt;div class=&quot;tech-icon&quot;&gt;🌳&lt;&#x2F;div&gt; 
+        &lt;h3&gt;Manipulation AST&lt;&#x2F;h3&gt;
+        &lt;p&gt;Le Markdown n&#x27;est plus traité comme du simple texte. Il est converti en Arbre Syntaxique (AST) avec la librairie &lt;code&gt;unified&lt;&#x2F;code&gt;. Cela permet d&#x27;injecter des blocs avancés (comme du HTML brut pour les &lt;strong&gt;Carrousels&lt;&#x2F;strong&gt;) sans casser la structure du document.&lt;&#x2F;p&gt;
+    &lt;&#x2F;div&gt;
+    &lt;div class=&quot;card&quot;&gt;
+        &lt;div class=&quot;tech-icon&quot;&gt;⏳&lt;&#x2F;div&gt; 
+        &lt;h3&gt;Git Manager&lt;&#x2F;h3&gt;
+        &lt;p&gt;L&#x27;application exécute des commandes Git natives en arrière-plan via &lt;code&gt;child_process&lt;&#x2F;code&gt;. L&#x27;utilisateur peut sauvegarder des versions, naviguer dans l&#x27;historique et restaurer d&#x27;anciennes modifications sans jamais ouvrir un terminal.&lt;&#x2F;p&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;
+&lt;hr class=&quot;spacer&quot;&gt;
+&lt;div class=&quot;split-layout&quot;&gt;
+    &lt;div&gt;
+        &lt;h2&gt;2. Déploiement Multi-Cibles&lt;&#x2F;h2&gt;
+        &lt;p&gt;Pour mettre le site en ligne, l&#x27;application propose deux pipelines distincts :&lt;&#x2F;p&gt;
+        &lt;ul class=&quot;mission-list&quot;&gt;
+            &lt;li&gt;&lt;strong&gt;Serveur FTP classique :&lt;&#x2F;strong&gt; L&#x27;application exécute &lt;code&gt;zola build&lt;&#x2F;code&gt; dans un dossier temporaire, se connecte au serveur via &lt;code&gt;basic-ftp&lt;&#x2F;code&gt;, nettoie le répertoire distant et transfère les fichiers compilés.&lt;&#x2F;li&gt;
+            &lt;li&gt;&lt;strong&gt;Intégration Continue (GitHub) :&lt;&#x2F;strong&gt; L&#x27;application génère automatiquement un workflow &lt;code&gt;zola.yml&lt;&#x2F;code&gt;. Lors du clic sur &quot;Publier&quot; (Git Push), ce sont les serveurs de GitHub qui compilent et hébergent le site.&lt;&#x2F;li&gt;
+            &lt;li&gt;&lt;strong&gt;Déploiement Accéléré (Netlify) :&lt;&#x2F;strong&gt; L&#x27;application compile le site localement, compresse le résultat sous forme d&#x27;archive zip, et l&#x27;envoie instantanément aux serveurs via l&#x27;API REST de Netlify pour une mise en ligne en quelques secondes.&lt;&#x2F;li&gt;
+        &lt;&#x2F;ul&gt;
+    &lt;&#x2F;div&gt;
+    &lt;div&gt;
+        &lt;div class=&quot;highlight-box&quot; style=&quot;border-left-color: #e74c3c; background-color: #fadbd8;&quot;&gt;
+            &lt;h3 style=&quot;color: #c0392b;&quot;&gt;⚠️ Attention : Configuration GitHub Pages&lt;&#x2F;h3&gt;
+            &lt;p style=&quot;color: #333; font-size: 0.95em;&quot;&gt;Si vous utilisez le bouton &lt;strong&gt;&quot;Configurer GitHub Pages&quot;&lt;&#x2F;strong&gt; dans l&#x27;application, une manipulation manuelle unique est indispensable sur le site web de GitHub pour autoriser l&#x27;affichage :&lt;&#x2F;p&gt;
+            &lt;ol style=&quot;margin-top: 10px; font-weight: bold; color: #c0392b; font-size: 0.9em;&quot;&gt;
+                &lt;li&gt;Allez dans l&#x27;onglet &lt;em&gt;Settings&lt;&#x2F;em&gt; de votre dépôt GitHub.&lt;&#x2F;li&gt;
+                &lt;li&gt;Cliquez sur &lt;em&gt;Pages&lt;&#x2F;em&gt; dans le menu de gauche.&lt;&#x2F;li&gt;
+                &lt;li&gt;Dans la section &quot;Build and deployment&quot;, modifiez la &lt;strong&gt;Source&lt;&#x2F;strong&gt; pour choisir &lt;strong&gt;&quot;GitHub Actions&quot;&lt;&#x2F;strong&gt;.&lt;&#x2F;li&gt;
+            &lt;&#x2F;ol&gt;
+        &lt;&#x2F;div&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;
+&lt;hr class=&quot;spacer&quot;&gt;
+&lt;h2 style=&quot;text-align:center; margin-bottom: 30px;&quot;&gt;Démonstrations&lt;&#x2F;h2&gt;
+&lt;div class=&quot;video-grid&quot;&gt;
+    &lt;div class=&quot;video-card&quot;&gt;
+        &lt;div  style=&quot;text-align: center; margin: 20px 0;&quot;&gt;
+    &lt;iframe 
+        src=&quot;https:&#x2F;&#x2F;www.youtube-nocookie.com&#x2F;embed&#x2F;oNLMvDs6Iyo&quot; 
+        webkitallowfullscreen 
+        mozallowfullscreen 
+        allowfullscreen
+        style=&quot;width: 100%; aspect-ratio: 16&#x2F;9; border: none; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);&quot;&gt;
+    &lt;&#x2F;iframe&gt;
+&lt;&#x2F;div&gt;
+        &lt;h3&gt;Création et édition&lt;&#x2F;h3&gt;
+        &lt;p style=&quot;font-size: 0.9em; color: #666;&quot;&gt;Créer&#x2F;modifier des pages via l&#x27;application.&lt;&#x2F;p&gt;
+    &lt;&#x2F;div&gt;
+    &lt;div class=&quot;video-card&quot;&gt;
+    &lt;div  style=&quot;text-align: center; margin: 20px 0;&quot;&gt;
+    &lt;iframe 
+        src=&quot;https:&#x2F;&#x2F;www.youtube-nocookie.com&#x2F;embed&#x2F;JEO_SXX_y20 &quot; 
+        webkitallowfullscreen 
+        mozallowfullscreen 
+        allowfullscreen
+        style=&quot;width: 100%; aspect-ratio: 16&#x2F;9; border: none; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);&quot;&gt;
+    &lt;&#x2F;iframe&gt;
+&lt;&#x2F;div&gt;
+        &lt;h3&gt;Déploiement&lt;&#x2F;h3&gt;
+        &lt;p style=&quot;font-size: 0.9em; color: #666;&quot;&gt;Exemple de déploiement via Netlify&lt;&#x2F;p&gt;
+    &lt;&#x2F;div&gt;
+&lt;&#x2F;div&gt;
+&lt;hr class=&quot;spacer&quot;&gt;
+&lt;div style=&quot;text-align:center; background-color: #3696f7; padding: 40px; border-radius: 8px; border: 1px solid #e9ecef; margin-top: 40px;&quot;&gt;
+    &lt;h2 style=&quot;margin-top: 0; color: #2c3e50;&quot;&gt;📥 Ressources Annexes&lt;&#x2F;h2&gt;
+    &lt;p style=&quot;margin-bottom: 25px;&quot;&gt;Vous souhaitez consulter le rapport détaillé du projet, étudier le code source, ou installer l&#x27;exécutable généré par Electron Forge ?&lt;&#x2F;p&gt;
+    &lt;a href=&quot;&#x2F;projet-tutore&#x2F;documents&#x2F;rapport-technique.pdf&quot; download style=&quot;background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; transition: background 0.3s&quot;&gt;📄 Télécharger le Rapport (.docx)  &lt;&#x2F;a&gt;
+    &lt;a href=&quot;https:&#x2F;&#x2F;github.com&#x2F;projet-tutore112&#x2F;projet-tutore&quot; download style=&quot;background-color: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; transition: background 0.3s&quot;&gt;Lien vers le dépôt github de l&#x27;application&lt;&#x2F;a&gt;
+&lt;&#x2F;div&gt;</content>
+        
+    </entry>
+</feed>
