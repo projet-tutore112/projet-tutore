@@ -6,11 +6,6 @@ template: "page.html"
 
 <p class="lead">L'application est une solution de bureau (Desktop) développée avec <strong>Electron.js</strong>. Elle permet de piloter le moteur Zola localement et d'automatiser des tâches complexes (création de pages, versioning, déploiement) via une interface modulaire.</p>
 
-
-<div>
-        <img src="/projet-tutore/images/zolashema.png" alt="Illustration du contexte">
-</div>
-
 <hr class="spacer">
 
 <h2>1. Architecture Modulaire & Intelligence</h2>
@@ -43,6 +38,7 @@ template: "page.html"
         <ul class="mission-list">
             <li><strong>Serveur FTP classique :</strong> L'application exécute <code>zola build</code> dans un dossier temporaire, se connecte au serveur via <code>basic-ftp</code>, nettoie le répertoire distant et transfère les fichiers compilés.</li>
             <li><strong>Intégration Continue (GitHub) :</strong> L'application génère automatiquement un workflow <code>zola.yml</code>. Lors du clic sur "Publier" (Git Push), ce sont les serveurs de GitHub qui compilent et hébergent le site.</li>
+            <li><strong>Déploiement Accéléré (Netlify) :</strong> L'application compile le site localement, compresse le résultat sous forme d'archive zip, et l'envoie instantanément aux serveurs via l'API REST de Netlify pour une mise en ligne en quelques secondes.</li>
         </ul>
     </div>
     <div>
