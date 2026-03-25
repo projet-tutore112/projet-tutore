@@ -64,17 +64,14 @@ template: "page.html"
 
 <div class="video-grid">
     <div class="video-card">
-        <h3>1. Interface et Création de Page</h3>
-        <p style="font-size: 0.9em; color: #666;">Détection automatique des templates et génération du formulaire associé.</p>
+        {{ youtube(id="oNLMvDs6Iyo") }}
+        <h3>Création et édition</h3>
+        <p style="font-size: 0.9em; color: #666;">Créer/modifier des pages via l'application.</p>
     </div>
     <div class="video-card">
-        <h3>2. Édition Riche et Carrousel</h3>
-        <p style="font-size: 0.9em; color: #666;">Sélection multiple d'images et injection d'un shortcode dynamique.</p>
-    </div>
-    <div class="video-card">
-    {{ youtube(id="oNLMvDs6Iyo") }}
-        <h3>3. Versioning et Déploiement</h3>
-        <p style="font-size: 0.9em; color: #666;">Sauvegarde Git (Commit) et publication automatisée (Push / FTP).</p>
+    {{ youtube(id="JEO_SXX_y20 ") }}
+        <h3>Déploiement</h3>
+        <p style="font-size: 0.9em; color: #666;">Exemple de déploiement via Netlify</p>
     </div>
 </div>
 

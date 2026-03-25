@@ -11,7 +11,7 @@ date: 2026-02-02
         <p>Notre but est de fournir une interface graphique (GUI) locale, packagée sous forme de logiciel installable, permettant de créer et gérer un site Zola existant <strong>sans aucune compétence en programmation</strong>.</p>
     </div>
     <div class="video-card">
-        <video src="/videos/fonctionnementzola.mp4" controls class="shadow-img" style="max-width: 100%;"></video>
+    {{ youtube(id="WVQNynpU7eY") }}
     </div>
     </div>
 
