@@ -72,6 +72,7 @@ template: "page.html"
         <p style="font-size: 0.9em; color: #666;">Sélection multiple d'images et injection d'un shortcode dynamique.</p>
     </div>
     <div class="video-card">
+    {{ youtube(id="oNLMvDs6Iyo") }}
         <h3>3. Versioning et Déploiement</h3>
         <p style="font-size: 0.9em; color: #666;">Sauvegarde Git (Commit) et publication automatisée (Push / FTP).</p>
     </div>

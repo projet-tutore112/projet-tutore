@@ -42,7 +42,7 @@ function arreterServeur() {
 }
 
 function buildSite(projectDir, outputDir, callbackFin, baseUrl = null) {
-    let cmd = `${getZolaCommand()} build --output-dir "${outputDir}"`;
+    let cmd = `${getZolaCommand()} build --output-dir "${outputDir}" --force`;
     
     if (baseUrl) {
         cmd += ` --base-url "${baseUrl}"`;
