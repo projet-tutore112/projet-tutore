@@ -17,7 +17,7 @@ Avant de pouvoir installer et lancer l'application, assurez-vous d'avoir les él
 
 ---
 
-## 🛠️ Installation
+## Installation
 
 1. **Cloner le dépôt :**
    Ouvrez votre terminal et exécutez la commande suivante :
