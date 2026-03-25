@@ -310,6 +310,18 @@ function genererFormulaire(frontMatter) {
     callbacks,
     currentProjectDir,
   );
+
+  if (frontMatter.template && currentProjectDir) {
+  const templatePath = path.join(
+    currentProjectDir,
+    "templates",
+    frontMatter.template
+  );
+
+  if (fs.existsSync(templatePath)) {
+    afficherEtatVariablesRenderer(frontMatter, templatePath);
+  }
+}
 }
 
 // ============================================================
@@ -823,9 +835,13 @@ window.updateTemplateFields = () => {
 
   if (!templateFullPath) return;
 
-  // Analyse basée sur le chemin complet (qu'il vienne de App ou Projet)
-  const analysis = templateEngine.analyseTemplate(templateFullPath);
-  const allVars = [...analysis.pageVars, ...analysis.extraVars];
+  // 🔥 NOUVEAU : utilise le moteur avancé
+  const fieldsData = templateEngine.getPageVariables(null, templateFullPath);
+
+  const allFields = [
+    ...fieldsData.page.map(f => ({ ...f, context: "page" })),
+    ...fieldsData.extra.map(f => ({ ...f, context: "extra" }))
+  ];
 
   // Reset si changement de template
   if (container.dataset.currentTemplate !== templateFullPath) {
@@ -835,32 +851,69 @@ window.updateTemplateFields = () => {
 
   const today = new Date().toISOString().split("T")[0];
 
-  allVars.forEach((varName) => {
+  allFields.forEach((field) => {
+    const varName = field.name;
+
     let input = container.querySelector(`[data-key="${varName}"]`);
 
-    let suggestedValue = "";
-    if (varName === "date") suggestedValue = today;
-    else if (varName === "title") {
-      suggestedValue = fileName
-        ? fileName
-            .replace(/[-_]/g, " ")
-            .replace(/\b\w/g, (l) => l.toUpperCase())
-        : "Nouveau Titre";
-    } else if (varName === "draft") suggestedValue = "false";
+    let suggestedValue = field.value ?? "";
+
+    if (!suggestedValue) {
+      if (varName === "date") suggestedValue = today;
+      else if (varName === "title") {
+        suggestedValue = fileName
+          ? fileName
+              .replace(/[-_]/g, " ")
+              .replace(/\b\w/g, (l) => l.toUpperCase())
+          : "Nouveau Titre";
+      } else if (varName === "draft") suggestedValue = "false";
+    }
 
     if (!input) {
       const div = document.createElement("div");
       div.style.marginBottom = "10px";
+
+      const type = field.type || "text";
+
+      let inputHTML = "";
+
+      if (type === "textarea") {
+        inputHTML = `<textarea 
+          class="template-input"
+          data-key="${varName}"
+          data-context="${field.context}"
+          data-user-edited="false"
+          style="width:100%; padding:8px;"
+          oninput="this.dataset.userEdited='true'">${suggestedValue}</textarea>`;
+      }
+      else if (type === "date") {
+        inputHTML = `<input type="date"
+          class="template-input"
+          data-key="${varName}"
+          data-context="${field.context}"
+          data-user-edited="false"
+          value="${suggestedValue}"
+          style="width:100%; padding:8px;"
+          oninput="this.dataset.userEdited='true'">`;
+      }
+      else {
+        inputHTML = `<input type="text"
+          class="template-input"
+          data-key="${varName}"
+          data-context="${field.context}"
+          data-user-edited="false"
+          value="${suggestedValue}"
+          style="width:100%; padding:8px;"
+          oninput="this.dataset.userEdited='true'">`;
+      }
+
       div.innerHTML = `
-                <label style="display:block; font-size:0.8em; font-weight:bold; color: #555;">${varName.toUpperCase()}</label>
-                <input type="text" 
-                       class="template-input" 
-                       data-key="${varName}" 
-                       data-user-edited="false"
-                       value="${suggestedValue}" 
-                       style="width:100%; padding:8px; border: 1px solid #ddd; border-radius:4px;"
-                       oninput="this.dataset.userEdited='true'">
-            `;
+        <label style="display:block; font-size:0.8em; font-weight:bold; color:#555;">
+          ${field.label || varName}
+        </label>
+        ${inputHTML}
+      `;
+
       container.appendChild(div);
     } else {
       if (input.dataset.userEdited === "false") {
@@ -891,7 +944,14 @@ async function validerCreationPage() {
 
   const values = {};
   document.querySelectorAll(".template-input").forEach((input) => {
-    values[input.dataset.key] = input.value;
+    const context = input.dataset.context;
+
+if (context === "extra") {
+  if (!values.extra) values.extra = {};
+  values.extra[input.dataset.key] = input.value;
+} else {
+  values[input.dataset.key] = input.value;
+}
   });
 
   try {
@@ -1204,6 +1264,115 @@ async function lancerDeploiementNetlify() {
             // L'erreur est déjà traitée dans netlifyManager
         }
     });
+}
+
+//
+//
+//
+
+function afficherEtatVariables(mdPath, templatePath) {
+  const containerUsed = document.getElementById("vars-used");
+  const containerMissing = document.getElementById("vars-missing");
+  const containerUnknown = document.getElementById("vars-unknown");
+
+  if (!containerUsed || !containerMissing || !containerUnknown) return;
+
+  const data = templateEngine.getPageVariables(mdPath, templatePath);
+
+  // RESET
+  containerUsed.innerHTML = "";
+  containerMissing.innerHTML = "";
+  containerUnknown.innerHTML = "";
+
+  // ===== USED =====
+  const used = [...data.page, ...data.extra].filter(f => f.used);
+
+  containerUsed.innerHTML = `<strong style="color:#27ae60;">✅ Utilisées (${used.length})</strong>`;
+  used.forEach(f => {
+    containerUsed.innerHTML += `<div style="font-size:12px;">• ${f.name}</div>`;
+  });
+
+  // ===== MISSING =====
+  const missing = [...data.page, ...data.extra].filter(f => !f.used);
+
+  containerMissing.innerHTML = `<strong style="color:#f39c12;">⚠️ Manquantes (${missing.length})</strong>`;
+  missing.forEach(f => {
+    containerMissing.innerHTML += `<div style="font-size:12px;">• ${f.name}</div>`;
+  });
+
+  // ===== UNKNOWN =====
+  const unknown = data.unknown;
+
+  containerUnknown.innerHTML = `<strong style="color:#e74c3c;">❌ Inconnues (${unknown.length})</strong>`;
+  unknown.forEach(f => {
+    containerUnknown.innerHTML += `<div style="font-size:12px;">• ${f.name}</div>`;
+  });
+}
+
+function afficherEtatVariablesRenderer(frontMatter, templatePath) {
+  const panelId = "template-debug-panel";
+
+  let panel = document.getElementById(panelId);
+
+  if (!panel) {
+    panel = document.createElement("div");
+    panel.id = panelId;
+    panel.style.marginTop = "20px";
+    panel.style.padding = "10px";
+    panel.style.borderTop = "1px solid #ccc";
+
+    panel.innerHTML = `
+      <h4>📊 Variables</h4>
+      <div id="vars-used"></div>
+      <div id="vars-missing"></div>
+      <div id="vars-unknown"></div>
+    `;
+
+    document.getElementById("form-container").appendChild(panel);
+  }
+
+  const usedDiv = document.getElementById("vars-used");
+  const missingDiv = document.getElementById("vars-missing");
+  const unknownDiv = document.getElementById("vars-unknown");
+
+  const analysis = require("./templateEngine").analyseTemplate(templatePath);
+
+  const expected = [...analysis.pageVars, ...analysis.extraVars];
+
+  const used = [];
+  const missing = [];
+  const unknown = [];
+
+  // Page vars
+  expected.forEach(v => {
+    if (frontMatter[v] && frontMatter[v] !== "") used.push(v);
+    else missing.push(v);
+  });
+
+  // Unknown vars
+  Object.keys(frontMatter).forEach(v => {
+    if (v === "extra") return;
+    if (!expected.includes(v) && v !== "template") {
+      unknown.push(v);
+    }
+  });
+
+  if (frontMatter.extra) {
+    Object.keys(frontMatter.extra).forEach(v => {
+      if (!expected.includes(v)) {
+        unknown.push("extra." + v);
+      }
+    });
+  }
+
+  usedDiv.innerHTML = `<strong style="color:#27ae60;">✅ Utilisées (${used.length})</strong>`
+    + used.map(v => `<div>• ${v}</div>`).join("");
+
+  missingDiv.innerHTML = `<strong style="color:#f39c12;">⚠️ Manquantes (${missing.length})</strong>`
+    + missing.map(v => `<div>• ${v}</div>`).join("");
+
+  unknownDiv.innerHTML = `<strong style="color:#e74c3c;">❌ Inconnues (${unknown.length})</strong>`
+    + unknown.map(v => `<div>• ${v}</div>`).join("");
 }
 
 // ============================================================
