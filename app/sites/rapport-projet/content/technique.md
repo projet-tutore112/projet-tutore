@@ -6,7 +6,6 @@ template: "page.html"
 
 <p class="lead">L'application est une solution de bureau (Desktop) développée avec <strong>Electron.js</strong>. Elle permet de piloter le moteur Zola localement et d'automatiser des tâches complexes (création de pages, versioning, déploiement) via une interface modulaire.</p>
 
-
 <div>
         <img src="/projet-tutore/images/zolashema.png" alt="Illustration du contexte">
 </div>
@@ -43,6 +42,7 @@ template: "page.html"
         <ul class="mission-list">
             <li><strong>Serveur FTP classique :</strong> L'application exécute <code>zola build</code> dans un dossier temporaire, se connecte au serveur via <code>basic-ftp</code>, nettoie le répertoire distant et transfère les fichiers compilés.</li>
             <li><strong>Intégration Continue (GitHub) :</strong> L'application génère automatiquement un workflow <code>zola.yml</code>. Lors du clic sur "Publier" (Git Push), ce sont les serveurs de GitHub qui compilent et hébergent le site.</li>
+            <li><strong>Déploiement Accéléré (Netlify) :</strong> L'application compile le site localement, compresse le résultat sous forme d'archive zip, et l'envoie instantanément aux serveurs via l'API REST de Netlify pour une mise en ligne en quelques secondes.</li>
         </ul>
     </div>
     <div>
@@ -64,16 +64,14 @@ template: "page.html"
 
 <div class="video-grid">
     <div class="video-card">
-        <h3>1. Interface et Création de Page</h3>
-        <p style="font-size: 0.9em; color: #666;">Détection automatique des templates et génération du formulaire associé.</p>
+        {{ youtube(id="oNLMvDs6Iyo") }}
+        <h3>Création et édition</h3>
+        <p style="font-size: 0.9em; color: #666;">Créer/modifier des pages via l'application.</p>
     </div>
     <div class="video-card">
-        <h3>2. Édition Riche et Carrousel</h3>
-        <p style="font-size: 0.9em; color: #666;">Sélection multiple d'images et injection d'un shortcode dynamique.</p>
-    </div>
-    <div class="video-card">
-        <h3>3. Versioning et Déploiement</h3>
-        <p style="font-size: 0.9em; color: #666;">Sauvegarde Git (Commit) et publication automatisée (Push / FTP).</p>
+    {{ youtube(id="JEO_SXX_y20 ") }}
+        <h3>Déploiement</h3>
+        <p style="font-size: 0.9em; color: #666;">Exemple de déploiement via Netlify</p>
     </div>
 </div>
 

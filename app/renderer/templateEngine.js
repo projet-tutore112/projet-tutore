@@ -48,11 +48,14 @@ function analyseTemplate(filePath) {
     const pageVars = new Set();
     const extraVars = new Set();
 
+    const motsInterdits = ["extra", "content", "ancestors", "permalink", "path", "word_count", "reading_time", "toc", "assets", "year", "month", "day"];
+
     // ===== page.xxx =====
     const pageMatches = content.match(/page\.(\w+)/g);
     if (pageMatches) {
         pageMatches.forEach(m => {
-            pageVars.add(m.split(".")[1]);
+            const key = m.split(".")[1];
+            if (!motsInterdits.includes(key)) pageVars.add(key);
         });
     }
 
@@ -61,9 +64,7 @@ function analyseTemplate(filePath) {
     if (loopMatches) {
         loopMatches.forEach(m => {
             const key = m.split(".")[1];
-            if (key !== "extra") {
-                pageVars.add(key);
-            }
+            if (!motsInterdits.includes(key)) pageVars.add(key);
         });
     }
 
@@ -159,9 +160,9 @@ function detectFieldType(name) {
 function extractVariablesFromTemplate(htmlContent) {
     const regex = /{{\s*([^}]+)\s*}}/g;
     const variables = new Set();
+    const motsInterdits = ["content", "ancestors", "extra"]; 
 
     let match;
-
     while ((match = regex.exec(htmlContent)) !== null) {
         let raw = match[1].trim();
         raw = raw.split("|")[0].trim();
@@ -169,7 +170,13 @@ function extractVariablesFromTemplate(htmlContent) {
         if (raw.includes("(")) continue;
 
         if (raw.startsWith("page.")) {
-            variables.add(raw.replace("page.", ""));
+            let varName = raw.replace("page.", "");
+            let baseVar = varName.split(".")[0];
+            // Si c'est un mot interdit (ex: content) et pas une vraie variable extra (ex: extra.cover)
+            if (motsInterdits.includes(baseVar) && !varName.startsWith("extra.")) {
+                continue; 
+            }
+            variables.add(varName);
         }
     }
 
